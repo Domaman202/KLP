@@ -5,24 +5,31 @@
 
 typedef enum token_type {
     // Скобки
-    TK_OPEN_BRACKET             = 0x0, // (
-    TK_CLOSE_BRACKET            = 0x1, // )
-    TK_OPEN_CUBE_BRACKET        = 0x2, // [
-    TK_CLOSE_CUBE_BRACKET       = 0x3, // ]
-    TK_OPEN_FIGURAL_BRACKET     = 0x4, // {
-    TK_CLOSE_FIGURAL_BRACKET    = 0x5, // }
+    TK_OPEN_BRACKET             = 0x0, /* ( */
+    TK_CLOSE_BRACKET            = 0x1, /* ) */
+    TK_OPEN_CUBE_BRACKET        = 0x2, /* [ */
+    TK_CLOSE_CUBE_BRACKET       = 0x3, /* ] */
+    TK_OPEN_FIGURAL_BRACKET     = 0x4, /* { */
+    TK_CLOSE_FIGURAL_BRACKET    = 0x5, /* } */
 
     // Числа/Символы/Строки
-    TK_NUMBER                   = 0x10, // 0123456789
-    TK_CHAR                     = 0x11, // 'x'
-    TK_STRING                   = 0x12, // "DomamaN202"
+    TK_NUMBER                   = 0x10, /* 0123456789   */
+    TK_CHAR                     = 0x11, /* 'x'          */
+    TK_STRING                   = 0x12, /* "DomamaN202" */
 
     // Остальные символы
-    TK_DOT                      = 0x20, // .
-    TK_COMMA                    = 0x21, // ,
-    TK_EXCLAMINATION            = 0x22, // !
-    TK_COLON                    = 0x23, // :
-    TK_SEMICOLON                = 0x24, // ;
+    TK_DOT                      = 0x20, /* . */
+    TK_COMMA                    = 0x21, /* , */
+    TK_EXCLAMINATION            = 0x22, /* ! */ 
+    TK_COLON                    = 0x23, /* : */
+    TK_SEMICOLON                = 0x24, /* ; */
+    TK_SLASH                    = 0x25, /* / */
+    TK_BACK_SLASH               = 0x26, /* \ */
+    TK_PIPE                     = 0x27, /* | */
+    TK_AMPERSAND                = 0x28, /* & */
+    TK_CIRCUMFLEX               = 0x29, /* ^ */
+    TK_SHARP                    = 0x2A, /* # */
+    TK_DOG                      = 0x2B, /* @ */
 
     // Спец. символы
     TK_SPACE                    = 0x30, // Пробелы и табы
