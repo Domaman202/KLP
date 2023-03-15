@@ -10,7 +10,7 @@ typedef enum token_type {
     TK_OPEN_CUBE_BRACKET        = 0x2, // [
     TK_CLOSE_CUBE_BRACKET       = 0x3, // ]
     TK_OPEN_FIGURAL_BRACKET     = 0x4, // {
-    TK_CLSOE_FIGURAL_BRACKET    = 0x5, // }
+    TK_CLOSE_FIGURAL_BRACKET    = 0x5, // }
 
     // Числа/Символы/Строки
     TK_NUMBER                   = 0x10, // 0123456789

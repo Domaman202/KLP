@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <lexer.h>
 
-void token_print(token_t token, bool skipspace) {
-    if (token.type != TK_SPACE) {
+void token_print(token_t token, bool nss) {
+    if (nss || token.type != TK_SPACE) {
         uint16_t tsize = token.tsize;
         char* text = malloc(tsize + 1);
         memcpy(text, token.text, tsize);
@@ -16,7 +16,7 @@ void token_print(token_t token, bool skipspace) {
 }
 
 int main() {
-    lexer_lex_result_t result = lexer_lex("123 $ 321");
+    lexer_lex_result_t result = lexer_lex("\"123\\\"312\" \t123");
     token_t* tk = result.tokens;
     while (tk) {
         token_print(*tk, true);
