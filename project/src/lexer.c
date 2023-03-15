@@ -72,6 +72,34 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
                 str++;
                 token->type = TK_SEMICOLON;
                 break;
+            case '/':
+                str++;
+                token->type = TK_SLASH;
+                break;
+            case '\\':
+                str++;
+                token->type = TK_SLASH;
+                break;
+            case '|':
+                str++;
+                token->type = TK_PIPE;
+                break;
+            case '&':
+                str++;
+                token->type = TK_AMPERSAND;
+                break;
+            case '^':
+                str++;
+                token->type = TK_CIRCUMFLEX;
+                break;
+            case '#':
+                str++;
+                token->type = TK_SHARP;
+                break;
+            case '@':
+                str++;
+                token->type = TK_DOG;
+                break;
             case '\'':
                 str += 2;
                 token->tsize = 3;
