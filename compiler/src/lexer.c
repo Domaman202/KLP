@@ -1,5 +1,6 @@
 #include <lexer.h>
 #include <stdlib.h>
+#include <string.h>
 
 token_t* token_allocate(char* str, token_t* prev) {
     token_t* token = malloc(sizeof(token_t));
@@ -13,11 +14,28 @@ token_t* token_allocate(char* str, token_t* prev) {
     return token;
 }
 
+char* token_text(token_t* token) {
+    uint16_t tsize = token->tsize;
+    char* text = malloc(tsize + 1);
+    memcpy(text, token->text, tsize);
+    text[tsize] = '\0';
+    return text;
+}
+
 lexer_next_result_t lexer_next(char* str, token_t* prev) {
     token_t* token = token_allocate(str, prev);
     char c = *str;
     //
-    if (c >= '0' && c <= '9') {
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_')) {
+        token->tsize = -1;
+        do {
+            c = *str;
+            str++;
+            token->tsize++;
+        } while ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c >= '0' && c <= '9'));
+        str--;
+        token->type = TK_NAMING;
+    } else if (c >= '0' && c <= '9') {
         token->tsize = -1;
         do {
             c = *str;
@@ -100,6 +118,34 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
                 str++;
                 token->type = TK_DOG;
                 break;
+            case '=':
+                str++;
+                token->type = TK_ASSIGN;
+                break;
+            case '+':
+                str++;
+                token->type = TK_PLUS;
+                break;
+            case '-':
+                str++;
+                token->type = TK_MINUS;
+                break;
+            case '*':
+                str++;
+                token->type = TK_STAR;
+                break;
+            case '~':
+                str++;
+                token->type = TK_TILDE;
+                break;
+            case '>':
+                str++;
+                token->type = TK_GREAT;
+                break;
+            case '<':
+                str++;
+                token->type = TK_LESS;
+                break;
             case '\'':
                 str += 2;
                 token->tsize = 3;
@@ -130,6 +176,10 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
                 token->type = TK_SPACE;
                 str--;
                 break;
+            case '\n':
+                str++;
+                token->tsize = 0;
+                token->type = TK_NEWLINE;
             case '\0':
                 token->tsize = 0;
                 token->type = TK_EOF;
@@ -156,11 +206,19 @@ lexer_lex_result_t lexer_lex(char* src) {
         lexer_next_result_t result = lexer_next(str, last);
         str = result.str;
         last = result.token;
-        if (last->type == TK_EOF) {
-            break;
+        switch (last->type) {
+            case TK_EOF:
+                goto end;
+            case TK_ERROR: {
+                lexer_lex_result_t result = { first->next, last };
+                return result;
+            }
+            default:
+                break;
         }
     }
     // Успешное выполнение
+    end:{}
     lexer_lex_result_t result = { first->next, NULL };
     return result;
 }

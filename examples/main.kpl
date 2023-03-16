@@ -1,0 +1,1 @@
+fun main(argc: uint32_t, argv: ptr<ptr<char>>): i32 = {}
