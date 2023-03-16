@@ -182,6 +182,7 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
                 token->type = TK_NEWLINE;
             case '\0':
                 token->tsize = 0;
+                token->next = NULL;
                 token->type = TK_EOF;
                 break;
             default:

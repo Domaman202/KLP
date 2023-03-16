@@ -37,12 +37,15 @@ bool parser_skip(parser_t* parser) {
 }
 
 void parser_prev(parser_t* parser) {
-    parser->token = parser->token->prev;
+    if (parser->token->prev != NULL) {
+        parser->token = parser->token->prev;
+    }
 }
 
 token_t* parser_next(parser_t* parser) {
     token_t* token = parser->token;
-    parser->token = token->next;
+    if (token->next != NULL)
+        parser->token = token->next;
     return token;
 }
 
@@ -68,7 +71,7 @@ ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch) {
     if (token->type == TK_LESS) {
         type->gen = parser_parse_type(parser, catch);
         parser_cnext(parser, catch, 1, TK_GREAT);
-    } else parser->token = token;
+    } else parser_prev(parser);
     return type;
 }
 
@@ -99,7 +102,7 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
             while (1) {
                 token_t* token = parser_cnext(parser, catch, 3, TK_NAMING, TK_COMMA, TK_CLOSE_BRACKET);
                 if (token->type == TK_NAMING) {
-                    parser->token = token;
+                    parser_prev(parser);
                     size_t size = sizeof(ast_variable_t*) * ++argc;
                     void* tmp = malloc(size);
                     memcpy(tmp, args, size - sizeof(ast_variable_t*));
