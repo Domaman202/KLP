@@ -3,20 +3,23 @@
 
 #include <stdint.h>
 
-typedef struct ast_type ast_type_t;
 typedef enum ast_expr_type ast_expr_type_t;
 typedef struct ast_expr ast_expr_t;
 typedef struct ast_context ast_context_t;
 typedef struct ast_function ast_function_t;
-typedef struct ast_body ast_body_t;
 typedef struct ast_variable ast_variable_t;
+typedef struct ast_body ast_body_t;
+typedef struct ast_math ast_math_t;
+typedef enum ast_math_oper ast_math_oper_t;
+typedef struct ast_type ast_type_t;
 
 enum ast_expr_type {
     AST_CONTEXT,
     AST_FUNCTION,
-    AST_BODY,
     AST_VARIABLE,
-    AST_TYPE
+    AST_TYPE,
+    AST_BODY,
+    AST_MATH
 };
 
 
@@ -39,17 +42,37 @@ struct ast_function {
     ast_body_t* body;
 };
 
+struct ast_variable {
+    ast_expr_t expr;
+    char* name;
+    ast_type_t* type;
+};
+
+//
+
 struct ast_body {
     ast_expr_t expr;
     uint16_t exprc;
     ast_expr_t** exprs;
 };
 
-struct ast_variable {
-    ast_expr_t expr;
-    char* name;
-    ast_type_t* type;
+//
+
+enum ast_math_oper {
+    MOP_ADD,
+    MOP_SUB,
+    MOP_MUL,
+    MOP_DIV
 };
+
+struct ast_math {
+    ast_expr_t expr;
+    ast_math_oper_t operation;
+    ast_expr_t* left;
+    ast_expr_t* right;
+};
+
+//
 
 struct ast_type {
     ast_expr_t expr;
@@ -59,8 +82,9 @@ struct ast_type {
 
 ast_context_t* ast_context_allocate();
 ast_function_t* ast_function_allocate();
-ast_body_t* ast_body_allocate();
 ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
+ast_body_t* ast_body_allocate();
+ast_math_t* ast_math_allocate();
 
 #endif /* __AST_H__ */

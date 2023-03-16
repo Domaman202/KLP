@@ -1,4 +1,5 @@
 #include <ast.h>
+
 #include <stdlib.h>
 
 ast_context_t* ast_context_allocate() {
@@ -24,6 +25,12 @@ ast_variable_t* ast_variable_allocate() {
     ast_variable_t* variable = malloc(sizeof(ast_variable_t));
     variable->expr.type = AST_VARIABLE;
     return variable;
+}
+
+ast_math_t* ast_math_allocate() {
+    ast_math_t* math = malloc(sizeof(ast_math_t));
+    math->expr.type = AST_MATH;
+    return math;
 }
 
 ast_type_t* ast_type_allocate() {

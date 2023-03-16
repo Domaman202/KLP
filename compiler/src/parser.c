@@ -1,11 +1,12 @@
 #include <ast.h>
 #include <lexer.h>
 #include <parser.h>
+
 #include <stdlib.h>
+#include <string.h>
 
 // todo: debug
 #include <stdio.h>
-#include <string.h>
 
 void* parser_error;
 
