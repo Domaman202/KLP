@@ -24,7 +24,7 @@ int main() {
     }
     /// Parser Print
     parser_parse_result_t pres = parser_parse(token);
-    ast_context_print(pres.context);
+    ast_context_print(0, pres.context);
     /// Parser Errors Print
     if (pres.error) {
         printf("Parser Errors:\n");
