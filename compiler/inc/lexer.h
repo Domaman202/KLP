@@ -18,41 +18,42 @@ enum token_type {
     TK_CLOSE_FIGURAL_BRACKET    = 0x5, /* } */
 
     // Стрелки
-    TK_GREAT                    = 0x10, /* > */
-    TK_LESS                     = 0x11, /* < */
+    TK_GREAT                    = 0x6, /* > */
+    TK_LESS                     = 0x7, /* < */
 
     // Битовые операции
-    TK_AMPERSAND                = 0x20, /* & */
-    TK_PIPE                     = 0x21, /* | */
-    TK_CIRCUMFLEX               = 0x22, /* ^ */
-    TK_TILDE                    = 0x23, /* ~ */
+    TK_AMPERSAND                = 0x8, /* & */
+    TK_PIPE                     = 0x9, /* | */
+    TK_CIRCUMFLEX               = 0xA, /* ^ */
+    TK_TILDE                    = 0xB, /* ~ */
 
+    // Математические операции
+    TK_PLUS                     = 0xC, /* + */
+    TK_MINUS                    = 0xD, /* - */
+    TK_STAR                     = 0xE, /* * */
+    TK_SLASH                    = 0xF, /* / */
 
     // Остальные символы
-    TK_DOT                      = 0x30, /* . */
-    TK_COMMA                    = 0x31, /* , */
-    TK_EXCLAMINATION            = 0x32, /* ! */ 
-    TK_COLON                    = 0x33, /* : */
-    TK_SEMICOLON                = 0x34, /* ; */
-    TK_SLASH                    = 0x35, /* / */
-    TK_BACK_SLASH               = 0x36, /* \ */
-    TK_SHARP                    = 0x37, /* # */
-    TK_DOG                      = 0x38, /* @ */
-    TK_ASSIGN                   = 0x39, /* = */
-    TK_PLUS                     = 0x3A, /* + */
-    TK_MINUS                    = 0x3B, /* - */
-    TK_STAR                     = 0x3C, /* * */
+    TK_DOT                      = 0x10, /* . */
+    TK_COMMA                    = 0x11, /* , */
+    TK_EXCLAMINATION            = 0x12, /* ! */ 
+    TK_COLON                    = 0x13, /* : */
+    TK_SEMICOLON                = 0x14, /* ; */
+    TK_BACK_SLASH               = 0x15, /* \ */
+    TK_SHARP                    = 0x16, /* # */
+    TK_DOG                      = 0x17, /* @ */
+    TK_ASSIGN                   = 0x18, /* = */
 
     // Числа/Символы/Строки/Названия
-    TK_NUMBER                   = 0x40, /* 0123456789   */
-    TK_CHAR                     = 0x41, /* 'x'          */
-    TK_STRING                   = 0x42, /* "DomamaN202" */
-    TK_NAMING                   = 0x43, /* i */
+    TK_NUMBER                   = 0x19, /* 0123456789   */
+    TK_CHAR                     = 0x1A, /* 'x'          */
+    TK_STRING                   = 0x1B, /* "DomamaN202" */
+    TK_NAMING                   = 0x1C, /* i */
 
     // Спец. символы
-    TK_SPACE                    = 0x50, // Пробелы и табы
-    TK_NEWLINE                  = 0x51, // Перенос строки
-    TK_EOF                      = 0x52, // Конец файла
+    TK_SPACE                    = 0x1D, // Пробелы и табы
+    TK_NEWLINE                  = 0x1E, // Перенос строки
+    TK_EOF                      = 0x1F, // Конец файла
 
     // Ошибка
     TK_ERROR                    = 0xFF

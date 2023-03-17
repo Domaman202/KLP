@@ -44,6 +44,7 @@ void parser_prev(parser_t* parser) {
 }
 
 token_t* parser_next(parser_t* parser) {
+    parser_skip_space(parser);
     token_t* token = parser->token;
     if (token->next != NULL)
         parser->token = token->next;
@@ -53,7 +54,6 @@ token_t* parser_next(parser_t* parser) {
 token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...) {
     va_list types;
     va_start(types, argc);
-    parser_skip_space(parser);
     token_t* token = parser_next(parser);
     for (; argc > 0; argc--) {
         token_type_t type = va_arg(types, token_type_t);
@@ -65,25 +65,6 @@ token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...) {
     longjmp(catch, 1);
 }
 
-ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch) {
-    ast_type_t* type = ast_type_allocate();
-    type->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
-    token_t* token = parser_next(parser);
-    if (token->type == TK_LESS) {
-        type->gen = parser_parse_type(parser, catch);
-        parser_cnext(parser, catch, 1, TK_GREAT);
-    } else parser_prev(parser);
-    return type;
-}
-
-ast_variable_t* parser_parse_variable_define(parser_t* parser, jmp_buf catch) {
-    ast_variable_t* variable = ast_variable_allocate();
-    variable->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
-    parser_cnext(parser, catch, 1, TK_COLON);
-    variable->type = parser_parse_type(parser, catch);
-    return variable;
-}
-
 ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
     token_t* token = parser_next(parser);
     if (token->type == TK_NAMING) {
@@ -91,8 +72,6 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
         if (!strcmp(text, "fun")) {
             // Парсинг функции
             ast_function_t* function = ast_function_allocate();
-            // Пропускаем пробелы
-            parser_skip_space(parser);
             // Сохраняем имя
             function->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
             // Расчёт аргументов
@@ -119,7 +98,11 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
             // Тип возврата
             parser_cnext(parser, catch, 1, TK_COLON);
             function->rettype = parser_parse_type(parser, catch);
-            //
+            // Тело функции
+            parser_cnext(parser, catch, 1, TK_ASSIGN);
+            function->body = parser_parse_body(parser, catch);
+            // Выход
+            free(text);
             return function;
         }
         free(text);
@@ -127,10 +110,96 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
     return NULL;
 }
 
+ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch) {
+    // Инициализация
+    uint16_t exprc = 0;
+    ast_expr_t** exprs = malloc(0);
+    ast_expr_t* left;
+    // Проверяем наличие начала тела
+    parser_cnext(parser, catch, 1, TK_OPEN_FIGURAL_BRACKET);
+    // Обработка тела
+    while (1) {
+        token_t* token = parser_next(parser);
+        switch (token->type) {
+            case TK_CLOSE_FIGURAL_BRACKET:
+            case TK_NEWLINE: {
+                    size_t size = sizeof(ast_expr_t*) * ++exprc;
+                    void* tmp = malloc(size);
+                    memcpy(tmp, exprs, size - sizeof(ast_expr_t*));
+                    free(exprs);
+                    exprs = tmp;
+                    exprs[exprc - 1] = left;
+                    left = NULL;
+                    break;
+                }
+            case TK_EOF:
+                parser_error = token;
+                longjmp(catch, 1);
+            default:
+                parser_prev(parser);
+                left = parser_parse_expr(parser, catch, left);
+                break;
+        }
+        if (token->type == TK_CLOSE_FIGURAL_BRACKET) {
+            break;
+        }
+    }
+    // Выход
+    ast_body_t* result = ast_body_allocate();
+    result->exprc = exprc;
+    result->exprs = exprs;
+    return result;
+}
+
+ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left) {
+    token_t* token = parser_next(parser);
+    switch (token->type) {
+        case TK_PLUS:
+        case TK_MINUS:
+        case TK_STAR:
+        case TK_SLASH: {
+            ast_math_t* math = ast_math_allocate();
+            math->operation = (ast_math_oper_t) token->type;
+            math->left = left;
+            math->right = parser_parse_expr(parser, catch, NULL);
+            return (ast_expr_t*) math;
+        }
+        case TK_NAMING: {
+            ast_naming_t* naming = ast_naming_allocate();
+            naming->name = token_text(token);
+            return (ast_expr_t*) naming;
+        }
+        default: {
+            parser_error = token;
+            longjmp(catch, 1);
+        }
+    }
+    return NULL;
+}
+
+ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch) {
+    ast_type_t* type = ast_type_allocate();
+    type->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
+    token_t* token = parser_next(parser);
+    if (token->type == TK_LESS) {
+        type->gen = parser_parse_type(parser, catch);
+        parser_cnext(parser, catch, 1, TK_GREAT);
+    } else parser_prev(parser);
+    return type;
+}
+
+ast_variable_t* parser_parse_variable_define(parser_t* parser, jmp_buf catch) {
+    ast_variable_t* variable = ast_variable_allocate();
+    variable->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
+    parser_cnext(parser, catch, 1, TK_COLON);
+    variable->type = parser_parse_type(parser, catch);
+    return variable;
+}
+
 parser_parse_result_t parser_parse(token_t* token) {
     // Сбрасываем ошибки
     parser_error = NULL;
-    // Создаём парсер
+    // Инициализация
     parser_t* parser = malloc(sizeof(parser_t));
     parser->token = token;
     // Создаём контекст
@@ -155,6 +224,7 @@ parser_parse_result_t parser_parse(token_t* token) {
             }
         }
     }
+    // Выход
     free(parser);
     parser_parse_result_t result = { context, parser_error };
     return result;

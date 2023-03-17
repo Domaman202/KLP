@@ -34,9 +34,12 @@ void parser_prev(parser_t* parser);
 token_t* parser_next(parser_t* parser);
 token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...);
 
-ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch);
-ast_variable_t* parser_parse_variable_define(parser_t* parser, jmp_buf catch);
 ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch);
+ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch);
+ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left);
+ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch);
+
+ast_variable_t* parser_parse_variable_define(parser_t* parser, jmp_buf catch);
 
 parser_parse_result_t parser_parse(token_t* token);
 

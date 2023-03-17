@@ -33,6 +33,12 @@ ast_math_t* ast_math_allocate() {
     return math;
 }
 
+ast_naming_t* ast_naming_allocate() {
+    ast_naming_t* naming = malloc(sizeof(ast_naming_t));
+    naming->expr.type = AST_NAMING;
+    return naming;
+}
+
 ast_type_t* ast_type_allocate() {
     ast_type_t* type = malloc(sizeof(ast_type_t));
     type->expr.type = AST_TYPE;

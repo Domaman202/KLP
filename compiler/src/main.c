@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 int main() {
-    lexer_lex_result_t lres = lexer_lex("fun add(a: i32, b: i32): i32 = {}");
+    lexer_lex_result_t lres = lexer_lex("fun add(a: i32, b: i32): i32 = { a * b + b * a }");
     token_t* token = lres.tokens;
     /// Lexer Print
     // printf("Lexer Result:\n");
