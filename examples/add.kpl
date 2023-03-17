@@ -1,0 +1,5 @@
+fun add_0(a: i32, b: i32): i32 = { a + b }
+
+fun add_1(a: i32, b: i32): i32 = {
+    a + b
+}

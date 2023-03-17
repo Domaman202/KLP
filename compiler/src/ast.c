@@ -1,6 +1,7 @@
 #include <ast.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 ast_context_t* ast_context_allocate() {
     ast_context_t* context = malloc(sizeof(ast_context_t));
@@ -43,4 +44,13 @@ ast_type_t* ast_type_allocate() {
     ast_type_t* type = malloc(sizeof(ast_type_t));
     type->expr.type = AST_TYPE;
     return type;
+}
+
+void ast_body_add(ast_body_t* body, ast_expr_t* expression) {
+    size_t size = sizeof(ast_expr_t*) * ++body->exprc;
+    void* tmp = malloc(size);
+    memcpy(tmp, body->exprs, size - sizeof(ast_expr_t*));
+    free(body->exprs);
+    body->exprs = tmp;
+    body->exprs[body->exprc - 1] = expression;
 }

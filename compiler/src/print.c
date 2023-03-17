@@ -17,26 +17,34 @@ void ast_print_indent(size_t indent) {
 }
 
 void ast_expr_print(size_t indent, ast_expr_t* expression) {
-    switch (expression->type) {
-        case AST_CONTEXT:
-            ast_context_print(indent, (ast_context_t*) expression);
-            break;
-        case AST_FUNCTION:
-            ast_function_print(indent, (ast_function_t*) expression);
-            break;
-        case AST_TYPE:
-            ast_type_print((ast_type_t*) expression);
-            break;
-        case AST_MATH:
-            ast_math_print(indent, (ast_math_t*) expression);
-            break;
-        case AST_NAMING:
-            ast_naming_print(indent, (ast_naming_t*) expression);
-            break;
-        default:
-            ast_print_indent(indent);
-            printf("[Unknown expression]: 0x%x\n", expression->type);
-            break;
+    if (expression == NULL) {
+        ast_print_indent(indent);
+        printf("[Null]\n");
+    } else {
+        switch (expression->type) {
+            case AST_CONTEXT:
+                ast_context_print(indent, (ast_context_t*) expression);
+                break;
+            case AST_FUNCTION:
+                ast_function_print(indent, (ast_function_t*) expression);
+                break;
+            case AST_TYPE:
+                ast_type_print((ast_type_t*) expression);
+                break;
+            case AST_BODY:
+                ast_body_print(indent, (ast_body_t*) expression);
+                break;
+            case AST_MATH:
+                ast_math_print(indent, (ast_math_t*) expression);
+                break;
+            case AST_NAMING:
+                ast_naming_print(indent, (ast_naming_t*) expression);
+                break;
+            default:
+                ast_print_indent(indent);
+                printf("[Unknown expression]: 0x%x\n", expression->type);
+                break;
+        }
     }
 }
 

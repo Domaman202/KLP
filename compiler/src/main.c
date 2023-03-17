@@ -9,10 +9,26 @@
 #include <stdbool.h>
 
 int main() {
-    lexer_lex_result_t lres = lexer_lex("fun add(a: i32, b: i32): i32 = { a * b + b * a }");
-    token_t* token = lres.tokens;
+    /// Source Read
+    char *src;
+    {
+        FILE *f = fopen("../examples/test.kpl", "rb");
+        fseek(f, 0, SEEK_END);
+        long fsize = ftell(f);
+        fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+
+        src = malloc(fsize + 1);
+        fread(src, fsize, 1, f);
+        // fclose(f);
+
+        src[fsize] = '\0';
+    }
+    printf("Source Read:\n%s\n", src);
+    /// Lexer
+    lexer_lex_result_t lres = lexer_lex(src);
     /// Lexer Print
-    // printf("Lexer Result:\n");
+    // token_t* token = lres.tokens;
+    // printf("\nLexer Result:\n");
     // while (token) {
     //     token_print(token, true);
     //     token = token->next;
@@ -22,12 +38,14 @@ int main() {
         printf("Lexer Errors:\n");
         token_print(lres.error, true);
     }
+    /// Parser
+    parser_parse_result_t pres = parser_parse(lres.tokens);
     /// Parser Print
-    parser_parse_result_t pres = parser_parse(token);
+    printf("\nParser Result:\n");
     ast_context_print(0, pres.context);
     /// Parser Errors Print
     if (pres.error) {
-        printf("Parser Errors:\n");
+        printf("\nParser Errors:\n");
         token_print(pres.error, true);
     }
 }

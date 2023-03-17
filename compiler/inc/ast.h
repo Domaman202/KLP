@@ -61,10 +61,13 @@ struct ast_body {
 //
 
 enum ast_math_oper {
-    MOP_ADD = 0xC,
-    MOP_SUB = 0xD,
-    MOP_MUL = 0xE,
-    MOP_DIV = 0xF
+    // Математические операции
+    MOP_ADD         = 0xC,
+    MOP_SUB         = 0xD,
+    MOP_MUL         = 0xE,
+    MOP_DIV         = 0xF,
+    // Остальные операции
+    MOP_ASSIGN      = 0x18,
 };
 
 struct ast_math {
@@ -94,5 +97,7 @@ ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate();
 ast_naming_t* ast_naming_allocate();
+
+void ast_body_add(ast_body_t* body, ast_expr_t* expression);
 
 #endif /* __AST_H__ */
