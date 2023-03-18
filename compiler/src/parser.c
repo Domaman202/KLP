@@ -128,6 +128,7 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
         parser_skip_space(parser);
         //
         token_t* token = parser_next(parser);
+        printf("||0x%x\n", token->type);
         if (token->type == close) {
             ast_body_add(body, left);
             left = NULL;
@@ -143,7 +144,9 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
                     longjmp(catch, 1);
                 default:
                     parser_prev(parser);
-                    left = parser_parse_expr(parser, catch, left);
+                    printf(">1\n");
+                    left = parser_parse_expr(parser, catch, left, close);
+                    printf("<1\n");
                     break;
             }
         }
@@ -152,41 +155,60 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
     return body;
 }
 
-ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left) {
-    token_t* token = parser_next(parser);
-    switch (token->type) {
-        case TK_OPEN_BRACKET:
+ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left, token_type_t close) {
+    while (1) {
+        token_t* token = parser_next(parser);
+        printf("|0x%x\n", token->type);
+        if (token->type == close) {
             parser_prev(parser);
-            return (ast_expr_t*) parser_parse_body(parser, catch, TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
-            break;
-        case TK_PLUS:
-        case TK_MINUS:
-        case TK_STAR:
-        case TK_SLASH: {
-            ast_math_t* math = ast_math_allocate();
-            math->operation = (ast_math_oper_t) token->type;
-            math->left = left;
-            math->right = parser_parse_expr(parser, catch, NULL);
-            return (ast_expr_t*) math;
-        }
-        case TK_ASSIGN: {
-            ast_math_t* math = ast_math_allocate();
-            math->operation = MOP_ASSIGN;
-            math->left = left;
-            math->right = parser_parse_expr(parser, catch, NULL);
-            return (ast_expr_t*) math;
-        }
-        case TK_NAMING: {
-            ast_naming_t* naming = ast_naming_allocate();
-            naming->name = token_text(token);
-            return (ast_expr_t*) naming;
-        }
-        default: {
-            parser_error = token;
-            longjmp(catch, 1);
+            return left;
+        } else {
+            switch (token->type) {
+                case TK_OPEN_BRACKET:
+                    parser_prev(parser);
+                    printf(">4\n");
+                    left = (ast_expr_t*) parser_parse_body(parser, catch, TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
+                    printf("<4\n");
+                    break;
+                case TK_PLUS:
+                case TK_MINUS:
+                case TK_STAR:
+                case TK_SLASH: {
+                    ast_math_t* math = ast_math_allocate();
+                    math->operation = (ast_math_oper_t) token->type;
+                    math->left = left;
+                    printf(">2\n");
+                    math->right = parser_parse_expr(parser, catch, NULL, close);
+                    printf("<2\n");
+                    left = (ast_expr_t*) math;
+                    break;
+                }
+                case TK_ASSIGN: {
+                    ast_math_t* math = ast_math_allocate();
+                    math->operation = MOP_ASSIGN;
+                    math->left = left;
+                    printf(">3\n");
+                    math->right = parser_parse_expr(parser, catch, NULL, close);
+                    printf("<3\n");
+                    left = (ast_expr_t*) math;
+                    break;
+                }
+                case TK_NAMING: {
+                    ast_naming_t* naming = ast_naming_allocate();
+                    naming->name = token_text(token);
+                    left = (ast_expr_t*) naming;
+                    break;
+                }
+                case TK_NEWLINE:
+                    parser_prev(parser);
+                    return left;
+                default: {
+                    parser_error = token;
+                    longjmp(catch, 1);
+                }
+            }
         }
     }
-    return NULL;
 }
 
 ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch) {
