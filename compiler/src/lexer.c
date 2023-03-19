@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+token_t* lexer_error;
+
 token_t* token_allocate(char* str, token_t* prev) {
     token_t* token = malloc(sizeof(token_t));
     prev->next = token;
@@ -23,7 +25,7 @@ char* token_text(token_t* token) {
     return text;
 }
 
-lexer_next_result_t lexer_next(char* str, token_t* prev) {
+lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch) {
     token_t* token = token_allocate(str, prev);
     char c = *str;
     //
@@ -190,7 +192,8 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
             default:
                 str++;
                 token->type = TK_ERROR;
-                break;
+                lexer_error = token;
+                longjmp(catch, 1);
         }
     }
     //
@@ -199,29 +202,25 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
 }
 
 lexer_lex_result_t lexer_lex(char* src) {
-    // Текущий символ
+    // Обнуляем ошибки
+    lexer_error = NULL;
+    // Инициализация
     char* str = src;
-    // Стартовый токен
     token_t* first = malloc(sizeof(token_t));
-    // Текущий токен
     token_t* last = first;
-    while (1) {
-        lexer_next_result_t result = lexer_next(str, last);
-        str = result.str;
-        last = result.token;
-        switch (last->type) {
-            case TK_EOF:
-                goto end;
-            case TK_ERROR: {
-                lexer_lex_result_t result = { first->next, last };
-                return result;
-            }
-            default:
+    jmp_buf catch;
+    // Установка обработчика ошибок
+    if (!setjmp(catch)) {
+        // Проходимся по символам
+        while (1) {
+            lexer_next_result_t result = lexer_next(str, last, catch);
+            str = result.str;
+            last = result.token;
+            if (last->type == TK_EOF)
                 break;
         }
     }
-    // Успешное выполнение
-    end:{}
-    lexer_lex_result_t result = { first->next, NULL };
+    // Конец
+    lexer_lex_result_t result = { first->next, lexer_error };
     return result;
 }

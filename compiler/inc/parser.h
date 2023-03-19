@@ -5,8 +5,6 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-extern void* parser_error;
-
 typedef struct parser parser_t;
 typedef struct parser_parse_result parser_parse_result_t;
 typedef struct parser_cnext_result parser_cnext_result_t;

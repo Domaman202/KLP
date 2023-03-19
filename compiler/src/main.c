@@ -37,6 +37,7 @@ int main() {
     if (lres.error) {
         printf("Lexer Errors:\n");
         token_print(lres.error, true);
+        return 1;
     }
     /// Parser
     parser_parse_result_t pres = parser_parse(lres.tokens);
@@ -47,5 +48,6 @@ int main() {
     if (pres.error) {
         printf("\nParser Errors:\n");
         token_print(pres.error, true);
+        return 1;
     }
 }
