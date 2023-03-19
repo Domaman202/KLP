@@ -78,30 +78,36 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
             // Расчёт аргументов
             parser_cnext(parser, catch, 1, TK_OPEN_BRACKET);
             // Аргументы
-            uint8_t argc = 0;
-            ast_variable_t** args = NULL;
             while (1) {
                 token_t* token = parser_cnext(parser, catch, 3, TK_NAMING, TK_COMMA, TK_CLOSE_BRACKET);
                 if (token->type == TK_NAMING) {
                     parser_prev(parser);
-                    size_t size = sizeof(ast_variable_t*) * ++argc;
-                    void* tmp = malloc(size);
-                    memcpy(tmp, args, size - sizeof(ast_variable_t*));
-                    free(args);
-                    args = tmp;
-                    args[argc - 1] = parser_parse_var_or_arg_define(parser, catch);
-                } else if (token->type == TK_COMMA)
+                    function->args = (void*) util_reallocadd((void*) function->args, (void*) parser_parse_var_or_arg_define(parser, catch), ++function->argc);
+                } else if (token->type == TK_COMMA) {
                     continue;
-                else break;
+                } else {
+                    break;
+                }
             }
-            function->argc = argc;
-            function->args = args;
             // Тип возврата
             parser_cnext(parser, catch, 1, TK_COLON);
             function->rettype = parser_parse_type(parser, catch);
             // Тело функции
             parser_cnext(parser, catch, 1, TK_ASSIGN);
-            function->body = parser_parse_body(parser, catch, TK_OPEN_FIGURAL_BRACKET, TK_CLOSE_FIGURAL_BRACKET);
+            // Проверка на external
+            token_t* token = parser_next(parser);
+            if (token->type == TK_NAMING) {
+                if (util_token_cmpfree(token, "ext")) {
+                    function->external = true;
+                } else {
+                    // Бросаем ошибку
+                    parser_error = token;
+                    longjmp(catch, 1);
+                }
+            } else {
+                parser_prev(parser);
+                function->body = parser_parse_body(parser, catch, TK_OPEN_FIGURAL_BRACKET, TK_CLOSE_FIGURAL_BRACKET);
+            }
             // Выход
             free(text);
             return function;
@@ -116,24 +122,28 @@ ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch) {
     if (token->type == TK_NAMING) {
         char* text0 = token_text(token);
         if (!strcmp(text0, "var")) {
+            // Высвобождаем память
+            free(text0);
             // Парсинг переменной
             ast_variable_t* variable = parser_parse_var_or_arg_define(parser, catch);
             // Проверка на external
             if (parser_next(parser)->type == TK_ASSIGN) {
-                char* text1 = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
-                if (!strcmp(text1, "ext")) {
+                if (util_token_cmpfree(parser_cnext(parser, catch, 1, TK_NAMING), "ext")) {
                     variable->external = true;
                 } else {
+                    // Бросаем ошибку
                     parser_error = token;
                     longjmp(catch, 1);
                 }
-                free(text1);
             } else parser_prev(parser);
             // Выход
-            free(text0);
             return variable;
-        } else parser_prev(parser);
-        free(text0);
+        } else {
+            // Высвобождаем память
+            free(text0);
+            //
+            parser_prev(parser);
+        }
     } else parser_prev(parser);
     return NULL;
 }

@@ -32,25 +32,33 @@ struct ast_expr {
 
 struct ast_context {
     ast_expr_t expr;
+    //
     uint8_t varc;
     ast_variable_t** vars;
+    //
     uint8_t func;
     ast_function_t** funs;
 };
 
 struct ast_function {
     ast_expr_t expr;
+    //
     char* name;
     uint8_t argc;
     ast_variable_t** args;
     ast_type_t* rettype;
+    //
+    bool external;
+    //
     ast_body_t* body;
 };
 
 struct ast_variable {
     ast_expr_t expr;
+    //
     char* name;
     ast_type_t* type;
+    //
     bool external;
 };
 
@@ -58,6 +66,7 @@ struct ast_variable {
 
 struct ast_body {
     ast_expr_t expr;
+    //
     uint16_t exprc;
     ast_expr_t** exprs;
 };
@@ -76,13 +85,16 @@ enum ast_math_oper {
 
 struct ast_math {
     ast_expr_t expr;
+    //
     ast_math_oper_t operation;
+    //
     ast_expr_t* left;
     ast_expr_t* right;
 };
 
 struct ast_naming {
     ast_expr_t expr;
+    //
     char* name;
 };
 
@@ -90,6 +102,7 @@ struct ast_naming {
 
 struct ast_type {
     ast_expr_t expr;
+    //
     char* name;
     ast_type_t* gen;
 };

@@ -77,9 +77,9 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     ast_print_indent(indent);
     printf("[Function]\n");
     ast_print_indent(indent);
-    printf("|\t[name]\t\"%s\"\n", function->name);
+    printf("|\t[name]\t \"%s\"\n", function->name);
     ast_print_indent(indent);
-    printf("|\t[args]\t");
+    printf("|\t[args]\t ");
     for (uint8_t i = function->argc; i > 0; i--) {
         ast_variable_t* arg = function->args[function->argc - i];
         printf("%s (", arg->name);
@@ -91,10 +91,14 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     }
     printf("\n");
     ast_print_indent(indent);
-    printf("|\t[ret]\t");
+    printf("|\t[ret]\t ");
     ast_type_print(function->rettype);
     printf("\n");
-    ast_body_print(indent, function->body);
+    ast_print_indent(indent);
+    printf("|\t[extern] %d\n", function->external);
+    if (!function->external) {
+        ast_body_print(indent, function->body);
+    }
 }
 
 void ast_variable_print(size_t indent, ast_variable_t* variable) {
