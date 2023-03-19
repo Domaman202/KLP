@@ -35,7 +35,7 @@ token_t* parser_next(parser_t* parser);
 token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...);
 
 ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch);
-ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global, bool assignable);
+ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global);
 ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open, token_type_t close);
 ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left, token_type_t close);
 ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch);

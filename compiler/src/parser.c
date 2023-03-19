@@ -117,7 +117,7 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
     return NULL;
 }
 
-ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global, bool assignable) {
+ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global) {
     token_t* token = parser_next(parser);
     if (token->type == TK_NAMING) {
         if (util_token_cmpfree(token, "var")) {
@@ -137,7 +137,7 @@ ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool glob
                         longjmp(catch, 1);
                     }
                 } else {
-                    if (assignable) {
+                    if (!global) {
                         parser_prev(parser);
                         variable->assign = (ast_expr_t*) parser_parse_expr(parser, catch, NULL, TK_CLOSE_FIGURAL_BRACKET);
                     } else {
@@ -190,7 +190,7 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
                 case TK_NAMING:
                     if (left == NULL && util_token_cmpfree(token, "var")) {
                         parser_prev(parser);
-                        left = (void*) parser_parse_variable(parser, catch, false, true);
+                        left = (void*) parser_parse_variable(parser, catch, false);
                         break;
                     }
                 default:
@@ -289,7 +289,7 @@ parser_parse_result_t parser_parse(token_t* token) {
             // Пропускаем бесполезные токены
             parser_skip(parser);
             // Парсим переменную
-            ast_variable_t* variable = parser_parse_variable(parser, catch, true, false);
+            ast_variable_t* variable = parser_parse_variable(parser, catch, true);
             if (variable != NULL) {
                 context->vars = (void*) util_reallocadd((void*) context->vars, (void*) variable, ++context->varc);
             }
