@@ -60,6 +60,9 @@ struct ast_variable {
     ast_type_t* type;
     //
     bool external;
+    bool global;
+    //
+    ast_expr_t* assign;
 };
 
 //

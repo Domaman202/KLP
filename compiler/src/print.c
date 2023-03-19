@@ -28,6 +28,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_FUNCTION:
                 ast_function_print(indent, (ast_function_t*) expression);
                 break;
+            case AST_VARIABLE:
+                ast_variable_print(indent, (ast_variable_t*) expression);
+                break;
             case AST_TYPE:
                 ast_type_print((ast_type_t*) expression);
                 break;
@@ -77,9 +80,9 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     ast_print_indent(indent);
     printf("[Function]\n");
     ast_print_indent(indent);
-    printf("|\t[name]\t \"%s\"\n", function->name);
+    printf("|\t[name]\t\"%s\"\n", function->name);
     ast_print_indent(indent);
-    printf("|\t[args]\t ");
+    printf("|\t[args]\t");
     for (uint8_t i = function->argc; i > 0; i--) {
         ast_variable_t* arg = function->args[function->argc - i];
         printf("%s (", arg->name);
@@ -91,11 +94,11 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     }
     printf("\n");
     ast_print_indent(indent);
-    printf("|\t[ret]\t ");
+    printf("|\t[ret]\t");
     ast_type_print(function->rettype);
     printf("\n");
     ast_print_indent(indent);
-    printf("|\t[extern] %d\n", function->external);
+    printf("|\t[ext]\t%d\n", function->external);
     if (!function->external) {
         ast_body_print(indent, function->body);
     }
@@ -105,13 +108,19 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
     ast_print_indent(indent);
     printf("[Variable]\n");
     ast_print_indent(indent);
-    printf("|\t[name]\t \"%s\"\n", variable->name);
+    printf("|\t[name]\t\"%s\"\n", variable->name);
     ast_print_indent(indent);
-    printf("|\t[type]\t (");
+    printf("|\t[type]\t(");
     ast_type_print(variable->type);
     printf(")\n");
     ast_print_indent(indent);
-    printf("|\t[extern] %d\n", variable->external);
+    printf("|\t[glb]\t%d\n", variable->global);
+    if (variable->global) {
+        ast_print_indent(indent);
+        printf("|\t[ext]\t%d\n", variable->external);
+    } else if (variable->assign) {
+        ast_expr_print(indent, variable->assign);
+    }
 }
 
 void ast_body_print(size_t indent, ast_body_t* body) {

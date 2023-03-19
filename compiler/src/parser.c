@@ -117,33 +117,39 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
     return NULL;
 }
 
-ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch) {
+ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global, bool assignable) {
     token_t* token = parser_next(parser);
     if (token->type == TK_NAMING) {
-        char* text0 = token_text(token);
-        if (!strcmp(text0, "var")) {
-            // Высвобождаем память
-            free(text0);
+        if (util_token_cmpfree(token, "var")) {
             // Парсинг переменной
             ast_variable_t* variable = parser_parse_var_or_arg_define(parser, catch);
+            variable->global = global;
             // Проверка на external
-            if (parser_next(parser)->type == TK_ASSIGN) {
-                if (util_token_cmpfree(parser_cnext(parser, catch, 1, TK_NAMING), "ext")) {
-                    variable->external = true;
+            token_t* token_assign = parser_next(parser);
+            if (token_assign->type == TK_ASSIGN) {
+                token_t* token_value = parser_cnext(parser, catch, 1, TK_NAMING);
+                if (util_token_cmpfree(token_value, "ext")) {
+                    if (global) {
+                        variable->external = true;
+                    } else {
+                        // Бросаем ошибку (локальная переменная не может быть external)
+                        parser_error = token_value;
+                        longjmp(catch, 1);
+                    }
                 } else {
-                    // Бросаем ошибку
-                    parser_error = token;
-                    longjmp(catch, 1);
+                    if (assignable) {
+                        parser_prev(parser);
+                        variable->assign = (ast_expr_t*) parser_parse_expr(parser, catch, NULL, TK_CLOSE_FIGURAL_BRACKET);
+                    } else {
+                        // Бросаем ошибку (переменной нельзя присвоить значение)
+                        parser_error = token_assign;
+                        longjmp(catch, 1);
+                    }
                 }
             } else parser_prev(parser);
             // Выход
             return variable;
-        } else {
-            // Высвобождаем память
-            free(text0);
-            //
-            parser_prev(parser);
-        }
+        } else parser_prev(parser);
     } else parser_prev(parser);
     return NULL;
 }
@@ -153,7 +159,7 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
     ast_body_t* body = ast_body_allocate();
     body->exprc = 0;
     body->exprs = malloc(0);
-    ast_expr_t* left;
+    ast_expr_t* left = NULL;
     // Пропускаем бесполезные токены
     parser_skip(parser);
     // Проверяем наличие начала тела
@@ -166,7 +172,6 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
         parser_skip_space(parser);
         //
         token_t* token = parser_next(parser);
-        // printf("||0x%x\n", token->type);
         if (token->type == close) {
             if (left != NULL) {
                 ast_body_add(body, left);
@@ -182,11 +187,15 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
                 case TK_EOF:
                     parser_error = token;
                     longjmp(catch, 1);
+                case TK_NAMING:
+                    if (left == NULL && util_token_cmpfree(token, "var")) {
+                        parser_prev(parser);
+                        left = (void*) parser_parse_variable(parser, catch, false, true);
+                        break;
+                    }
                 default:
                     parser_prev(parser);
-                    // printf(">1\n");
                     left = parser_parse_expr(parser, catch, left, close);
-                    // printf("<1\n");
                     break;
             }
         }
@@ -198,7 +207,6 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
 ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left, token_type_t close) {
     while (1) {
         token_t* token = parser_next(parser);
-        // printf("|0x%x\n", token->type);
         if (token->type == close) {
             parser_prev(parser);
             return left;
@@ -206,9 +214,7 @@ ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left,
             switch (token->type) {
                 case TK_OPEN_BRACKET:
                     parser_prev(parser);
-                    // printf(">4\n");
                     left = (ast_expr_t*) parser_parse_body(parser, catch, TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
-                    // printf("<4\n");
                     break;
                 case TK_PLUS:
                 case TK_MINUS:
@@ -217,20 +223,16 @@ ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left,
                     ast_math_t* math = ast_math_allocate();
                     math->operation = (ast_math_oper_t) token->type;
                     math->left = left;
-                    // printf(">2\n");
                     math->right = parser_parse_expr(parser, catch, NULL, close);
-                    // printf("<2\n");
                     left = (ast_expr_t*) math;
                     break;
                 }
                 case TK_ASSIGN: {
-                    ast_math_t* math = ast_math_allocate();
-                    math->operation = MOP_ASSIGN;
-                    math->left = left;
-                    // printf(">3\n");
-                    math->right = parser_parse_expr(parser, catch, NULL, close);
-                    // printf("<3\n");
-                    left = (ast_expr_t*) math;
+                    ast_math_t* assign = ast_math_allocate();
+                    assign->operation = MOP_ASSIGN;
+                    assign->left = left;
+                    assign->right = parser_parse_expr(parser, catch, NULL, close);
+                    left = (ast_expr_t*) assign;
                     break;
                 }
                 case TK_NAMING: {
@@ -287,7 +289,7 @@ parser_parse_result_t parser_parse(token_t* token) {
             // Пропускаем бесполезные токены
             parser_skip(parser);
             // Парсим переменную
-            ast_variable_t* variable = parser_parse_variable(parser, catch);
+            ast_variable_t* variable = parser_parse_variable(parser, catch, true, false);
             if (variable != NULL) {
                 context->vars = (void*) util_reallocadd((void*) context->vars, (void*) variable, ++context->varc);
             }
