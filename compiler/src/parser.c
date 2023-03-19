@@ -120,7 +120,7 @@ ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch) {
             ast_variable_t* variable = parser_parse_var_or_arg_define(parser, catch);
             // Проверка на external
             if (parser_next(parser)->type == TK_ASSIGN) {
-                char* text1 = token_text(token);
+                char* text1 = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
                 if (!strcmp(text1, "ext")) {
                     variable->external = true;
                 } else {

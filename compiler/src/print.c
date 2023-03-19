@@ -101,11 +101,13 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
     ast_print_indent(indent);
     printf("[Variable]\n");
     ast_print_indent(indent);
-    printf("|\t[name]\t\"%s\"\n", variable->name);
+    printf("|\t[name]\t \"%s\"\n", variable->name);
     ast_print_indent(indent);
-    printf("|\t[type]\t\"");
+    printf("|\t[type]\t (");
     ast_type_print(variable->type);
-    printf("\"\n");
+    printf(")\n");
+    ast_print_indent(indent);
+    printf("|\t[extern] %d\n", variable->external);
 }
 
 void ast_body_print(size_t indent, ast_body_t* body) {
