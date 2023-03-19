@@ -111,7 +111,9 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
     printf("|\t[name]\t\"%s\"\n", variable->name);
     ast_print_indent(indent);
     printf("|\t[type]\t(");
-    ast_type_print(variable->type);
+    if (variable->type)
+        ast_type_print(variable->type);
+    else printf("unkown");
     printf(")\n");
     ast_print_indent(indent);
     printf("|\t[glb]\t%d\n", variable->global);

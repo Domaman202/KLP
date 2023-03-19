@@ -69,8 +69,7 @@ token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...) {
 ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
     token_t* token = parser_next(parser);
     if (token->type == TK_NAMING) {
-        char* text = token_text(token);
-        if (!strcmp(text, "fun")) {
+        if (util_token_cmpfree(token, "fun")) {
             // Парсинг функции
             ast_function_t* function = ast_function_allocate();
             // Сохраняем имя
@@ -109,10 +108,8 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
                 function->body = parser_parse_body(parser, catch, TK_OPEN_FIGURAL_BRACKET, TK_CLOSE_FIGURAL_BRACKET);
             }
             // Выход
-            free(text);
             return function;
         } else parser_prev(parser);
-        free(text);
     } else parser_prev(parser);
     return NULL;
 }
@@ -122,9 +119,22 @@ ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool glob
     if (token->type == TK_NAMING) {
         if (util_token_cmpfree(token, "var")) {
             // Парсинг переменной
-            ast_variable_t* variable = parser_parse_var_or_arg_define(parser, catch);
+            ast_variable_t* variable;
+            // Определние типа
+            token = parser_cnext(parser, catch, 1, TK_NAMING);
+            bool type_defined = parser_cnext(parser, catch, 2, TK_COLON, TK_ASSIGN)->type == TK_COLON;
+            //
+            if (type_defined) {
+                parser->token = token;
+                variable = parser_parse_var_or_arg_define(parser, catch);
+            } else {
+                variable = ast_variable_allocate();
+                variable->name = token_text(token);
+                parser_prev(parser);
+            }
+            //
             variable->global = global;
-            // Проверка на external
+            // Проверка на external и присваивание
             token_t* token_assign = parser_next(parser);
             if (token_assign->type == TK_ASSIGN) {
                 token_t* token_value = parser_cnext(parser, catch, 1, TK_NAMING);
@@ -138,6 +148,7 @@ ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool glob
                     }
                 } else {
                     if (!global) {
+                        
                         parser_prev(parser);
                         variable->assign = (ast_expr_t*) parser_parse_expr(parser, catch, NULL, TK_CLOSE_FIGURAL_BRACKET);
                     } else {
