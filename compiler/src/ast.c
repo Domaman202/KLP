@@ -1,4 +1,5 @@
 #include <ast.h>
+#include <util.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,7 @@ ast_body_t* ast_body_allocate() {
 ast_variable_t* ast_variable_allocate() {
     ast_variable_t* variable = malloc(sizeof(ast_variable_t));
     variable->expr.type = AST_VARIABLE;
+    variable->external = false;
     return variable;
 }
 
@@ -47,10 +49,5 @@ ast_type_t* ast_type_allocate() {
 }
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expression) {
-    size_t size = sizeof(ast_expr_t*) * ++body->exprc;
-    void* tmp = malloc(size);
-    memcpy(tmp, body->exprs, size - sizeof(ast_expr_t*));
-    free(body->exprs);
-    body->exprs = tmp;
-    body->exprs[body->exprc - 1] = expression;
+    body->exprs = (void*) util_reallocadd((void*) body->exprs, (void*) expression, ++body->exprc);
 }

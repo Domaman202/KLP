@@ -1,4 +1,5 @@
 #include <ast.h>
+#include <util.h>
 #include <lexer.h>
 #include <parser.h>
 
@@ -88,7 +89,7 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
                     memcpy(tmp, args, size - sizeof(ast_variable_t*));
                     free(args);
                     args = tmp;
-                    args[argc - 1] = parser_parse_variable_define(parser, catch);
+                    args[argc - 1] = parser_parse_var_or_arg_define(parser, catch);
                 } else if (token->type == TK_COMMA)
                     continue;
                 else break;
@@ -104,9 +105,36 @@ ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch) {
             // Выход
             free(text);
             return function;
-        }
+        } else parser_prev(parser);
         free(text);
-    }
+    } else parser_prev(parser);
+    return NULL;
+}
+
+ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch) {
+    token_t* token = parser_next(parser);
+    if (token->type == TK_NAMING) {
+        char* text0 = token_text(token);
+        if (!strcmp(text0, "var")) {
+            // Парсинг переменной
+            ast_variable_t* variable = parser_parse_var_or_arg_define(parser, catch);
+            // Проверка на external
+            if (parser_next(parser)->type == TK_ASSIGN) {
+                char* text1 = token_text(token);
+                if (!strcmp(text1, "ext")) {
+                    variable->external = true;
+                } else {
+                    parser_error = token;
+                    longjmp(catch, 1);
+                }
+                free(text1);
+            } else parser_prev(parser);
+            // Выход
+            free(text0);
+            return variable;
+        } else parser_prev(parser);
+        free(text0);
+    } else parser_prev(parser);
     return NULL;
 }
 
@@ -128,10 +156,12 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
         parser_skip_space(parser);
         //
         token_t* token = parser_next(parser);
-        printf("||0x%x\n", token->type);
+        // printf("||0x%x\n", token->type);
         if (token->type == close) {
-            ast_body_add(body, left);
-            left = NULL;
+            if (left != NULL) {
+                ast_body_add(body, left);
+                left = NULL;
+            }
             break;
         } else {
             switch (token->type) {
@@ -144,9 +174,9 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
                     longjmp(catch, 1);
                 default:
                     parser_prev(parser);
-                    printf(">1\n");
+                    // printf(">1\n");
                     left = parser_parse_expr(parser, catch, left, close);
-                    printf("<1\n");
+                    // printf("<1\n");
                     break;
             }
         }
@@ -158,7 +188,7 @@ ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open
 ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left, token_type_t close) {
     while (1) {
         token_t* token = parser_next(parser);
-        printf("|0x%x\n", token->type);
+        // printf("|0x%x\n", token->type);
         if (token->type == close) {
             parser_prev(parser);
             return left;
@@ -166,9 +196,9 @@ ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left,
             switch (token->type) {
                 case TK_OPEN_BRACKET:
                     parser_prev(parser);
-                    printf(">4\n");
+                    // printf(">4\n");
                     left = (ast_expr_t*) parser_parse_body(parser, catch, TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
-                    printf("<4\n");
+                    // printf("<4\n");
                     break;
                 case TK_PLUS:
                 case TK_MINUS:
@@ -177,9 +207,9 @@ ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left,
                     ast_math_t* math = ast_math_allocate();
                     math->operation = (ast_math_oper_t) token->type;
                     math->left = left;
-                    printf(">2\n");
+                    // printf(">2\n");
                     math->right = parser_parse_expr(parser, catch, NULL, close);
-                    printf("<2\n");
+                    // printf("<2\n");
                     left = (ast_expr_t*) math;
                     break;
                 }
@@ -187,9 +217,9 @@ ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left,
                     ast_math_t* math = ast_math_allocate();
                     math->operation = MOP_ASSIGN;
                     math->left = left;
-                    printf(">3\n");
+                    // printf(">3\n");
                     math->right = parser_parse_expr(parser, catch, NULL, close);
-                    printf("<3\n");
+                    // printf("<3\n");
                     left = (ast_expr_t*) math;
                     break;
                 }
@@ -222,7 +252,7 @@ ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch) {
     return type;
 }
 
-ast_variable_t* parser_parse_variable_define(parser_t* parser, jmp_buf catch) {
+ast_variable_t* parser_parse_var_or_arg_define(parser_t* parser, jmp_buf catch) {
     ast_variable_t* variable = ast_variable_allocate();
     variable->name = token_text(parser_cnext(parser, catch, 1, TK_NAMING));
     parser_cnext(parser, catch, 1, TK_COLON);
@@ -246,15 +276,15 @@ parser_parse_result_t parser_parse(token_t* token) {
         while (parser->token->type != TK_EOF) {
             // Пропускаем бесполезные токены
             parser_skip(parser);
-            // Парсим функции
+            // Парсим переменную
+            ast_variable_t* variable = parser_parse_variable(parser, catch);
+            if (variable != NULL) {
+                context->vars = (void*) util_reallocadd((void*) context->vars, (void*) variable, ++context->varc);
+            }
+            // Парсим функцию
             ast_function_t* function = parser_parse_function(parser, catch);
             if (function != NULL) {
-                size_t size = sizeof(ast_function_t*) * ++context->func;
-                void* tmp = malloc(size);
-                memcpy(tmp, context->funs, size - sizeof(ast_function_t*));
-                free(context->funs);
-                context->funs = tmp;
-                context->funs[context->func - 1] = function;
+                context->funs = (void*) util_reallocadd((void*) context->funs, (void*) function, ++context->func);
             }
         }
     }

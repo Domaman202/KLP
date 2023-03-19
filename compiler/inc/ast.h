@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum ast_expr_type ast_expr_type_t;
 typedef struct ast_expr ast_expr_t;
@@ -31,6 +32,8 @@ struct ast_expr {
 
 struct ast_context {
     ast_expr_t expr;
+    uint8_t varc;
+    ast_variable_t** vars;
     uint8_t func;
     ast_function_t** funs;
 };
@@ -48,6 +51,7 @@ struct ast_variable {
     ast_expr_t expr;
     char* name;
     ast_type_t* type;
+    bool external;
 };
 
 //

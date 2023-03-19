@@ -51,6 +51,19 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
 void ast_context_print(size_t indent, ast_context_t* context) {
     ast_print_indent(indent);
     printf("[Context]\n");
+    if (context->varc) {
+        for (uint16_t i = context->varc; i > 0; i--) {
+            ast_variable_print(indent + 1, context->vars[context->varc - i]);
+            if (i > 1) {
+                ast_print_indent(indent + 1);
+                printf("\n");
+            }
+        }
+        if (context->func) {
+            ast_print_indent(indent + 1);
+            printf("\n");
+        }
+    }
     for (uint16_t i = context->func; i > 0; i--) {
         ast_function_print(indent + 1, context->funs[context->func - i]);
         if (i > 1) {
@@ -82,6 +95,17 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     ast_type_print(function->rettype);
     printf("\n");
     ast_body_print(indent, function->body);
+}
+
+void ast_variable_print(size_t indent, ast_variable_t* variable) {
+    ast_print_indent(indent);
+    printf("[Variable]\n");
+    ast_print_indent(indent);
+    printf("|\t[name]\t\"%s\"\n", variable->name);
+    ast_print_indent(indent);
+    printf("|\t[type]\t\"");
+    ast_type_print(variable->type);
+    printf("\"\n");
 }
 
 void ast_body_print(size_t indent, ast_body_t* body) {
