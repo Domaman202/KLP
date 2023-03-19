@@ -40,8 +40,11 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_MATH:
                 ast_math_print(indent, (ast_math_t*) expression);
                 break;
+            case AST_NUMBER:
+            case AST_CHAR:
+            case AST_STRING:
             case AST_NAMING:
-                ast_naming_print(indent, (ast_naming_t*) expression);
+                ast_value_print(indent, (ast_value_t*) expression);
                 break;
             default:
                 ast_print_indent(indent);
@@ -144,9 +147,30 @@ void ast_math_print(size_t indent, ast_math_t* math) {
     }
 }
 
-void ast_naming_print(size_t indent, ast_naming_t* naming) {
+void ast_value_print(size_t indent, ast_value_t* value) {
     ast_print_indent(indent);
-    printf("[Naming] %s\n", naming->name);
+    switch (value->expr.type) {
+        case AST_NUMBER:
+            printf("[Number]");
+            break;
+        case AST_CHAR:
+            printf("[Char]");
+            break;
+        case AST_STRING:
+            printf("[String]");
+            break;
+        case AST_NAMING:
+            printf("[Naming]");
+            break;
+        default:
+            printf("[Value]\n");
+            ast_print_indent(indent + 1);
+            printf("[Type]\t0x%x\n", value->expr.type);
+            ast_print_indent(indent + 1);
+            printf("[Text]\t%s\n", value->text);
+            return;
+    }
+    printf("\t%s\n", value->text);
 }
 
 void ast_type_print(ast_type_t* type) {

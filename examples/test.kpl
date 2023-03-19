@@ -1,6 +1,5 @@
-var d: i32
-var e: i32 = ext
+var i: ptr<i32>
 
 fun foo(a: i32, b: i32): i32 = {
-    var c = a + b
+    [i][1] = a + b
 }

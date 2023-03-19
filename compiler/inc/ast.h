@@ -12,7 +12,8 @@ typedef struct ast_variable ast_variable_t;
 typedef struct ast_body ast_body_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
-typedef struct ast_naming ast_naming_t;
+typedef struct ast_pointer ast_pointer_t;
+typedef struct ast_value ast_value_t;
 typedef struct ast_type ast_type_t;
 
 enum ast_expr_type {
@@ -22,7 +23,10 @@ enum ast_expr_type {
     AST_TYPE        = 0x3,
     AST_BODY        = 0x4,
     AST_MATH        = 0x5,
-    AST_NAMING      = 0x6
+    AST_NUMBER      = 0x19,
+    AST_CHAR        = 0x1A,
+    AST_STRING      = 0x1B,
+    AST_NAMING      = 0x1C
 };
 
 
@@ -82,7 +86,9 @@ enum ast_math_oper {
     MOP_SUB         = 0xD,
     MOP_MUL         = 0xE,
     MOP_DIV         = 0xF,
-    // Остальные операции
+    // Разыминовывание
+    MOP_DEREFERENCE = 0x2,
+    // Присваивание
     MOP_ASSIGN      = 0x18,
 };
 
@@ -95,10 +101,10 @@ struct ast_math {
     ast_expr_t* right;
 };
 
-struct ast_naming {
+struct ast_value {
     ast_expr_t expr;
     //
-    char* name;
+    char* text;
 };
 
 //
@@ -116,7 +122,7 @@ ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate();
-ast_naming_t* ast_naming_allocate();
+ast_value_t* ast_value_allocate(ast_expr_type_t type);
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expression);
 

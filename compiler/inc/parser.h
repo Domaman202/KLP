@@ -12,8 +12,13 @@ typedef struct parser_parse_result parser_parse_result_t;
 typedef struct parser_cnext_result parser_cnext_result_t;
 
 struct parser {
+    // Вход
     token_t* token;
+    // Выход
     ast_context_t* context;
+    //
+    jmp_buf catch;
+    token_t* error;
 };
 
 struct parser_parse_result {
@@ -26,21 +31,25 @@ struct parser_cnext_result {
     parser_parse_result_t error;
 };
 
-bool parser_skip_space(parser_t* parser);
-bool parser_skip_nl(parser_t* parser);
-bool parser_skip(parser_t* parser);
+__attribute__((__noreturn__))
+void parser_throw(token_t* token);
 
-void parser_prev(parser_t* parser);
-token_t* parser_next(parser_t* parser);
-token_t* parser_cnext(parser_t* parser, jmp_buf catch, unsigned int argc, ...);
+bool parser_skip_space();
+bool parser_skip_nl();
+bool parser_skip();
 
-ast_function_t* parser_parse_function(parser_t* parser, jmp_buf catch);
-ast_variable_t* parser_parse_variable(parser_t* parser, jmp_buf catch, bool global);
-ast_body_t* parser_parse_body(parser_t* parser, jmp_buf catch, token_type_t open, token_type_t close);
-ast_expr_t* parser_parse_expr(parser_t* parser, jmp_buf catch, ast_expr_t* left, token_type_t close);
-ast_type_t* parser_parse_type(parser_t* parser, jmp_buf catch);
+void parser_prev();
+token_t* parser_next();
+token_t* parser_cnext(unsigned int argc, ...);
 
-ast_variable_t* parser_parse_var_or_arg_define(parser_t* parser, jmp_buf catch);
+ast_function_t* parser_parse_function();
+ast_variable_t* parser_parse_variable(bool global);
+ast_body_t* parser_parse_body(token_type_t open, token_type_t close);
+ast_expr_t* parser_parse_expr(ast_expr_t* left, token_type_t close);
+ast_math_t* parser_parse_math(ast_expr_t* left, ast_math_oper_t operation, token_type_t close);
+ast_type_t* parser_parse_type();
+
+ast_variable_t* parser_parse_var_or_arg_define();
 
 parser_parse_result_t parser_parse(token_t* token);
 
