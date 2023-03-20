@@ -43,8 +43,7 @@ token_t* parser_cnext(unsigned int argc, ...);
 ast_function_t* parser_parse_function();
 ast_variable_t* parser_parse_variable(bool global);
 ast_body_t* parser_parse_body(token_type_t open, token_type_t close);
-ast_expr_t* parser_parse_expr(ast_expr_t* left, token_type_t close);
-ast_math_t* parser_parse_math(ast_expr_t* left, ast_math_oper_t operation, token_type_t close);
+ast_expr_t* parser_parse_expr(ast_expr_t* left);
 ast_type_t* parser_parse_type();
 
 ast_variable_t* parser_parse_var_or_arg_define();

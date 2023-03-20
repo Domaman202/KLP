@@ -140,7 +140,7 @@ void ast_math_print(size_t indent, ast_math_t* math) {
     ast_print_indent(indent);
     printf("[Math]\n");
     ast_print_indent(indent + 1);
-    printf("[Operation] 0x%x\n", math->operation);
+    printf("[Operation]\t0x%x\n", math->operation);
     ast_expr_print(indent + 1, math->left);
     if (math->right) {
         ast_expr_print(indent + 1, math->right);

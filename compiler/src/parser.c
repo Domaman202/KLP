@@ -151,7 +151,7 @@ ast_variable_t* parser_parse_variable(bool global) {
                 } else {
                     if (!global) {
                         parser_prev();
-                        variable->assign = (ast_expr_t*) parser_parse_expr(NULL, TK_CLOSE_FIGURAL_BRACKET);
+                        variable->assign = (ast_expr_t*) parser_parse_expr(NULL);
                     } else {
                         // Бросаем ошибку (переменной нельзя присвоить значение)
                         parser_throw(token_assign);
@@ -207,7 +207,7 @@ ast_body_t* parser_parse_body(token_type_t open, token_type_t close) {
                 // Парсим выражение
                 default:
                     parser_prev();
-                    left = parser_parse_expr(left, close);
+                    left = parser_parse_expr(left);
                     break;
             }
         }
@@ -216,65 +216,63 @@ ast_body_t* parser_parse_body(token_type_t open, token_type_t close) {
     return body;
 }
 
-ast_expr_t* parser_parse_expr(ast_expr_t* left, token_type_t close) {
+ast_expr_t* parser_parse_expr(ast_expr_t* left) {
     while (1) {
         token_t* token = parser_next();
-        // Проверка на конец выражения/тела
-        if (token->type == close) {
-            parser_prev();
-            return left;
-        } else {
-            switch (token->type) {
-                // Парсим выражение в скобках
-                case TK_OPEN_BRACKET:
-                    parser_prev();
-                    left = (ast_expr_t*) parser_parse_body(TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
-                    break;
-                // Парсим разыминовывание указателя
-                case TK_OPEN_CUBE_BRACKET: {
-                    ast_math_t* dereference = ast_math_allocate();
-                    dereference->operation = MOP_DEREFERENCE;
-                    dereference->left = parser_parse_expr(NULL, TK_CLOSE_CUBE_BRACKET);
-                    parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
-                    token = parser_next();
-                    if (token->type == TK_OPEN_CUBE_BRACKET) {
-                        dereference->right = parser_parse_expr(NULL, TK_CLOSE_CUBE_BRACKET);
-                        parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
-                    } else parser_prev();
-                    left = (ast_expr_t*) dereference;
-                    break;
-                }
-                // Парсим мат. выражения и присваивание
-                case TK_PLUS:
-                case TK_MINUS:
-                case TK_STAR:
-                case TK_SLASH:
-                case TK_ASSIGN: {
-                    ast_math_t* math = ast_math_allocate();
-                    math->operation = (ast_math_oper_t) token->type;
-                    math->left = left;
-                    math->right = parser_parse_expr(NULL, close);
-                    left = (ast_expr_t*) math;
-                    break;
-                }
-                // Парсим числа и названия
-                case TK_NUMBER:
-                case TK_CHAR:
-                case TK_STRING:
-                case TK_NAMING: {
-                    ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
-                    value->text = token_text(token);
-                    left = (ast_expr_t*) value;
-                    break;
-                }
-                // Конец выражения
-                case TK_NEWLINE:
-                    parser_prev();
-                    return left;
-                // Иначе кидаем ошибку (неизвестный символ)
-                default:
-                    parser_throw(token);
+        printf("|0x%x\n", token->type);
+        switch (token->type) {
+            // Парсим выражение в скобках
+            case TK_OPEN_BRACKET:
+                parser_prev();
+                left = (ast_expr_t*) parser_parse_body(TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
+                break;
+            // Парсим разыминовывание указателя
+            case TK_OPEN_CUBE_BRACKET: {
+                ast_math_t* dereference = ast_math_allocate();
+                dereference->operation = MOP_DEREFERENCE;
+                dereference->left = parser_parse_expr(NULL);
+                token = parser_next();
+                if (token->type == TK_COMMA)
+                    dereference->right = parser_parse_expr(NULL);
+                else parser_prev();
+                parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
+                left = (ast_expr_t*) dereference;
+                break;
             }
+            // Парсим мат. выражения и присваивание
+            case TK_PLUS:
+            case TK_MINUS:
+            case TK_STAR:
+            case TK_SLASH:
+            case TK_ASSIGN: {
+                ast_math_t* math = ast_math_allocate();
+                math->operation = (ast_math_oper_t) token->type;
+                math->left = left;
+                math->right = parser_parse_expr(NULL);
+                left = (ast_expr_t*) math;
+                break;
+            }
+            // Парсим числа и названия
+            case TK_NUMBER:
+            case TK_CHAR:
+            case TK_STRING:
+            case TK_NAMING: {
+                ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
+                value->text = token_text(token);
+                left = (ast_expr_t*) value;
+                break;
+            }
+            // Конец выражения
+            case TK_CLOSE_BRACKET:
+            case TK_CLOSE_CUBE_BRACKET:
+            case TK_CLOSE_FIGURAL_BRACKET:
+            case TK_COMMA:
+            case TK_NEWLINE:
+                parser_prev();
+                return left;
+            // Иначе кидаем ошибку (неизвестный символ)
+            default:
+                parser_throw(token);
         }
     }
 }
