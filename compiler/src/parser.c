@@ -219,7 +219,6 @@ ast_body_t* parser_parse_body(token_type_t open, token_type_t close) {
 ast_expr_t* parser_parse_expr(ast_expr_t* left) {
     while (1) {
         token_t* token = parser_next();
-        printf("|0x%x\n", token->type);
         switch (token->type) {
             // Парсим выражение в скобках
             case TK_OPEN_BRACKET:
