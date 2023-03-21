@@ -131,9 +131,9 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
 void ast_body_print(size_t indent, ast_body_t* body) {
     ast_print_indent(indent);
     printf("[Body]\n");
-    for (uint16_t i = body->exprc; i > 0; i--) {
-        ast_expr_print(indent + 1, body->exprs[body->exprc - i]);
-        if (i > 1) {
+    for (ast_expr_t* expr = body->exprs; expr != NULL; expr = expr->next) {
+        ast_expr_print(indent + 1, expr);
+        if (expr->next) {
             ast_print_indent(indent + 1);
             printf("\n");
         }

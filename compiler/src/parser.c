@@ -168,8 +168,6 @@ ast_variable_t* parser_parse_variable(bool global) {
 ast_body_t* parser_parse_body(token_type_t open, token_type_t close) {
     // Инициализация
     ast_body_t* body = ast_body_allocate();
-    body->exprc = 0;
-    body->exprs = malloc(0);
     ast_expr_t* left = NULL;
     // Пропускаем бесполезные токены
     parser_skip();

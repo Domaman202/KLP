@@ -32,6 +32,7 @@ enum ast_expr_type {
 
 struct ast_expr {
     ast_expr_type_t type;
+    ast_expr_t* next;
 };
 
 struct ast_context {
@@ -74,8 +75,7 @@ struct ast_variable {
 struct ast_body {
     ast_expr_t expr;
     //
-    uint16_t exprc;
-    ast_expr_t** exprs;
+    ast_expr_t* exprs;
 };
 
 //
@@ -124,6 +124,6 @@ ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate();
 ast_value_t* ast_value_allocate(ast_expr_type_t type);
 
-void ast_body_add(ast_body_t* body, ast_expr_t* expression);
+void ast_body_add(ast_body_t* body, ast_expr_t* expr);
 
 #endif /* __AST_H__ */

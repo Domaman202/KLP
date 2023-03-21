@@ -47,6 +47,11 @@ ast_type_t* ast_type_allocate() {
     return type;
 }
 
-void ast_body_add(ast_body_t* body, ast_expr_t* expression) {
-    body->exprs = (void*) util_reallocadd((void*) body->exprs, (void*) expression, ++body->exprc);
+void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
+    if (body->exprs) {
+        ast_expr_t* last = body->exprs;
+        while (last->next)
+            last = last->next;
+        last->next = expr;
+    } else body->exprs = expr;
 }
