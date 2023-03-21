@@ -29,9 +29,10 @@ ast_variable_t* ast_variable_allocate() {
     return variable;
 }
 
-ast_math_t* ast_math_allocate() {
+ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     ast_math_t* math = calloc(1, sizeof(ast_math_t));
     math->expr.type = AST_MATH;
+    math->operation = operation;
     return math;
 }
 
@@ -48,10 +49,8 @@ ast_type_t* ast_type_allocate() {
 }
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
-    if (body->exprs) {
-        ast_expr_t* last = body->exprs;
-        while (last->next)
-            last = last->next;
-        last->next = expr;
-    } else body->exprs = expr;
+    ast_expr_t** ptr = &body->exprs;
+    while (*ptr)
+        ptr = &(*ptr)->next;
+    *ptr = expr;
 }

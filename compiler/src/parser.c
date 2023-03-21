@@ -225,8 +225,7 @@ ast_expr_t* parser_parse_expr(ast_expr_t* left) {
                 break;
             // Парсим разыминовывание указателя
             case TK_OPEN_CUBE_BRACKET: {
-                ast_math_t* dereference = ast_math_allocate();
-                dereference->operation = MOP_DEREFERENCE;
+                ast_math_t* dereference = ast_math_allocate(MOP_DEREFERENCE);
                 dereference->left = parser_parse_expr(NULL);
                 token = parser_next();
                 if (token->type == TK_COMMA)
@@ -242,8 +241,7 @@ ast_expr_t* parser_parse_expr(ast_expr_t* left) {
             case TK_STAR:
             case TK_SLASH:
             case TK_ASSIGN: {
-                ast_math_t* math = ast_math_allocate();
-                math->operation = (ast_math_oper_t) token->type;
+                ast_math_t* math = ast_math_allocate((ast_math_oper_t) token->type);
                 math->left = left;
                 math->right = parser_parse_expr(NULL);
                 left = (ast_expr_t*) math;

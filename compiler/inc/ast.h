@@ -121,7 +121,7 @@ ast_function_t* ast_function_allocate();
 ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
-ast_math_t* ast_math_allocate();
+ast_math_t* ast_math_allocate(ast_math_oper_t operation);
 ast_value_t* ast_value_allocate(ast_expr_type_t type);
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr);
