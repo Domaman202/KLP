@@ -1,5 +1,5 @@
 var i: ptr<i32>
 
 fun foo(a: i32, b: i32): i32 = {
-    a + b + c
+    a * b + c * d
 }

@@ -243,18 +243,8 @@ ast_expr_t* parser_parse_expr(ast_expr_t* left) {
             case TK_ASSIGN: {
                 ast_math_t* math = ast_math_allocate((ast_math_oper_t) token->type);
                 math->left = left;
-                math->right = parser_parse_expr(NULL);
+                math->right = parser_parse_value();
                 left = (ast_expr_t*) math;
-                break;
-            }
-            // Парсим числа и названия
-            case TK_NUMBER:
-            case TK_CHAR:
-            case TK_STRING:
-            case TK_NAMING: {
-                ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
-                value->text = token_text(token);
-                left = (ast_expr_t*) value;
                 break;
             }
             // Конец выражения
@@ -267,8 +257,29 @@ ast_expr_t* parser_parse_expr(ast_expr_t* left) {
                 return left;
             // Иначе кидаем ошибку (неизвестный символ)
             default:
-                parser_throw(token);
+                parser_prev();
+                left = parser_parse_value();
+                if (left)
+                    break;
+                else parser_throw(token);
         }
+    }
+}
+
+ast_expr_t* parser_parse_value() {
+    token_t* token = parser_next();
+    switch (token->type) {
+        // Парсим числа и названия
+        case TK_NUMBER:
+        case TK_CHAR:
+        case TK_STRING:
+        case TK_NAMING: {
+            ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
+            value->text = token_text(token);
+            return (ast_expr_t*) value;
+        }
+        default:
+            return NULL;
     }
 }
 

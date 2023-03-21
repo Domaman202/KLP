@@ -51,9 +51,9 @@ int main() {
         token_print(pres.error, true);
         return 1;
     }
-    /// SS
-    ss_ss_context(pres.context);
-    /// SS Print
-    printf("\nSS Result:\n");
-    ast_context_print(0, pres.context);    
+    // /// SS
+    // ss_ss_context(pres.context);
+    // /// SS Print
+    // printf("\nSS Result:\n");
+    // ast_context_print(0, pres.context);    
 }

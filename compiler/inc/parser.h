@@ -44,6 +44,7 @@ ast_function_t* parser_parse_function();
 ast_variable_t* parser_parse_variable(bool global);
 ast_body_t* parser_parse_body(token_type_t open, token_type_t close);
 ast_expr_t* parser_parse_expr(ast_expr_t* left);
+ast_expr_t* parser_parse_value();
 ast_type_t* parser_parse_type();
 
 ast_variable_t* parser_parse_var_or_arg_define();
