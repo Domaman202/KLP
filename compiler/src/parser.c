@@ -183,6 +183,7 @@ ast_body_t* parser_parse_body() {
             case TK_CLOSE_FIGURAL_BRACKET:
                 // Выход
                 return body;
+            case TK_SEMICOLON:
             case TK_NEWLINE:
                 // Парсим следующее выражение
                 break;
@@ -200,10 +201,14 @@ ast_body_t* parser_parse_expr() {
     while (1) {
         token_t* token = parser_next();
         switch (token->type) {
+            case TK_OPEN_BRACKET:
+                ast_body_add(body, (ast_expr_t*) parser_parse_body());
+                break;
             case TK_CLOSE_BRACKET:
             case TK_CLOSE_CUBE_BRACKET:
             case TK_CLOSE_FIGURAL_BRACKET:
             case TK_COMMA:
+            case TK_SEMICOLON:
             case TK_NEWLINE:
                 parser_prev();
                 return body;

@@ -70,7 +70,6 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
 uint8_t builder_priority(ast_expr_t* expression) {
     switch (expression->type) {
         case AST_BODY:
-        case AST_BRACKETS:
             return 255;
         case AST_MATH: {
             ast_math_t* math = (ast_math_t*) expression;
