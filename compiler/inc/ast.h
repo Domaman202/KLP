@@ -22,7 +22,8 @@ enum ast_expr_type {
     AST_VARIABLE    = 0x2,
     AST_TYPE        = 0x3,
     AST_BODY        = 0x4,
-    AST_MATH        = 0x5,
+    AST_BRACKETS    = 0x5,
+    AST_MATH        = 0x6,
     AST_NUMBER      = 0x19,
     AST_CHAR        = 0x1A,
     AST_STRING      = 0x1B,
@@ -32,6 +33,7 @@ enum ast_expr_type {
 
 struct ast_expr {
     ast_expr_type_t type;
+    ast_expr_t* prev;
     ast_expr_t* next;
 };
 

@@ -108,7 +108,8 @@ ast_function_t* parser_parse_function() {
                 }
             } else {
                 parser_prev();
-                function->body = parser_parse_body(TK_OPEN_FIGURAL_BRACKET, TK_CLOSE_FIGURAL_BRACKET);
+                parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                function->body = parser_parse_body();
             }
             // Выход
             return function;
@@ -151,7 +152,7 @@ ast_variable_t* parser_parse_variable(bool global) {
                 } else {
                     if (!global) {
                         parser_prev();
-                        variable->assign = (ast_expr_t*) parser_parse_expr(NULL);
+                        variable->assign = (ast_expr_t*) parser_parse_expr();
                     } else {
                         // Бросаем ошибку (переменной нельзя присвоить значение)
                         parser_throw(token_assign);
@@ -165,121 +166,64 @@ ast_variable_t* parser_parse_variable(bool global) {
     return NULL;
 }
 
-ast_body_t* parser_parse_body(token_type_t open, token_type_t close) {
+ast_body_t* parser_parse_body() {
     // Инициализация
     ast_body_t* body = ast_body_allocate();
-    ast_expr_t* left = NULL;
-    // Пропускаем бесполезные токены
-    parser_skip();
-    // Проверяем наличие начала тела
-    parser_cnext(1, open);
-    // Пропускаем бесполезные токены
-    parser_skip();
-    // Обработка тела
+    //
     while (1) {
-        token_t* token = parser_next();
-        // Проверка на конец выражения
-        if (token->type == close) {
-            if (left != NULL) {
-                ast_body_add(body, left);
-                left = NULL;
-            }
-            break;
-        } else {
-            switch (token->type) {
-                // При переносе строки сохраняем выражение
-                case TK_NEWLINE:
-                    ast_body_add(body, left);
-                    left = NULL;
-                    break;
-                // При конце файла кидаем ошибки (тело не было закрыто)
-                case TK_EOF:
-                    parser_throw(token);
-                // Проверяем на определение переменной
-                case TK_NAMING:
-                    if (left == NULL && util_token_cmpfree(token, "var")) {
-                        parser_prev();
-                        left = (void*) parser_parse_variable(false);
-                        break;
-                    }
-                // Парсим выражение
-                default:
-                    parser_prev();
-                    left = parser_parse_expr(left);
-                    break;
-            }
+        ast_body_t* expr = parser_parse_expr();
+        if (expr->exprs) {
+            ast_body_add(body, (ast_expr_t*) expr);
         }
-    }
-    // Выход
-    return body;
-}
-
-ast_expr_t* parser_parse_expr(ast_expr_t* left) {
-    while (1) {
+        //
         token_t* token = parser_next();
         switch (token->type) {
-            // Парсим выражение в скобках
-            case TK_OPEN_BRACKET:
-                parser_prev();
-                left = (ast_expr_t*) parser_parse_body(TK_OPEN_BRACKET, TK_CLOSE_BRACKET);
-                break;
-            // Парсим разыминовывание указателя
-            case TK_OPEN_CUBE_BRACKET: {
-                ast_math_t* dereference = ast_math_allocate(MOP_DEREFERENCE);
-                dereference->left = parser_parse_expr(NULL);
-                token = parser_next();
-                if (token->type == TK_COMMA)
-                    dereference->right = parser_parse_expr(NULL);
-                else parser_prev();
-                parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
-                left = (ast_expr_t*) dereference;
-                break;
-            }
-            // Парсим мат. выражения и присваивание
-            case TK_PLUS:
-            case TK_MINUS:
-            case TK_STAR:
-            case TK_SLASH:
-            case TK_ASSIGN: {
-                ast_math_t* math = ast_math_allocate((ast_math_oper_t) token->type);
-                math->left = left;
-                math->right = parser_parse_value();
-                left = (ast_expr_t*) math;
-                break;
-            }
-            // Конец выражения
             case TK_CLOSE_BRACKET:
             case TK_CLOSE_CUBE_BRACKET:
             case TK_CLOSE_FIGURAL_BRACKET:
-            case TK_COMMA:
+                // Выход
+                return body;
             case TK_NEWLINE:
-                parser_prev();
-                return left;
-            // Иначе кидаем ошибку (неизвестный символ)
+                // Парсим следующее выражение
+                break;
             default:
-                parser_prev();
-                left = parser_parse_value();
-                if (left)
-                    break;
-                else parser_throw(token);
+                // Кидаем исключение
+                parser_throw(token);
         }
     }
 }
 
-ast_expr_t* parser_parse_value() {
-    token_t* token = parser_next();
-    switch (token->type) {
-        // Парсим числа и названия
-        case TK_NUMBER:
-        case TK_CHAR:
-        case TK_STRING:
-        case TK_NAMING: {
-            ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
-            value->text = token_text(token);
-            return (ast_expr_t*) value;
+ast_body_t* parser_parse_expr() {
+    // Инициализация
+    ast_body_t* body = ast_body_allocate();
+    // Перебираем все токены
+    while (1) {
+        token_t* token = parser_next();
+        switch (token->type) {
+            case TK_CLOSE_BRACKET:
+            case TK_CLOSE_CUBE_BRACKET:
+            case TK_CLOSE_FIGURAL_BRACKET:
+            case TK_NEWLINE:
+                parser_prev();
+                return body;
+            case TK_NUMBER:
+            case TK_CHAR:
+            case TK_STRING:
+            case TK_NAMING: {
+                ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
+                value->text = token_text(token);
+                ast_body_add(body, (ast_expr_t*) value);
+                break;
+            }
+            case TK_PLUS:
+            case TK_MINUS:
+            case TK_STAR:
+            case TK_ASSIGN:
+                ast_body_add(body, (ast_expr_t*) ast_math_allocate((ast_math_oper_t) token->type));
+                break;
+            default:
+                parser_throw(token);
         }
-        default:
-            return NULL;
     }
 }
 

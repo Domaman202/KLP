@@ -49,8 +49,14 @@ ast_type_t* ast_type_allocate() {
 }
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
-    ast_expr_t** ptr = &body->exprs;
-    while (*ptr)
-        ptr = &(*ptr)->next;
-    *ptr = expr;
+    if (body->exprs) {
+        ast_expr_t* last = body->exprs;
+        while (last->next != NULL)
+            last = last->next;
+        last->next = expr;
+        expr->prev = last;
+    } else {
+        body->exprs = expr;
+        expr->prev = NULL;
+    }
 }
