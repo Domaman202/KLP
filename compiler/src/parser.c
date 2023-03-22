@@ -231,15 +231,36 @@ ast_body_t* parser_parse_expr() {
                     // Иначе кидаем ошибку
                     parser_throw(token);
                 }
+            case TK_NAMING: {
+                // Проверка на вызов функции
+                token_t* ntoken = parser_next();
+                if (ntoken->type == TK_OPEN_BRACKET) {
+                    // Парсим вызов функции
+                    ast_call_t* call = ast_call_allocate(token_text(token));
+                    ast_body_add(body, (ast_expr_t*) call);
+                    // Парсинг аргументов
+                    while (1) {
+                        ast_body_add(call->args, (ast_expr_t*) parser_parse_expr());
+                        // Парсинг аргументов
+                        token = parser_next();
+                        if (token->type == TK_COMMA) { // если есть запятая - парсим следующий аргумент
+                            continue;
+                        } else if (token->type == TK_CLOSE_BRACKET) { // если закрывается скобка - конец выражения вызова функции
+                            break;
+                        } else {
+                            // Иначе кидаем ошибку
+                            parser_throw(token);
+                        }
+                    }
+                    break;
+                } else parser_prev();
+                // Парсим наименование
+            }
             case TK_NUMBER:
             case TK_CHAR:
             case TK_STRING:
-            case TK_NAMING: {
-                ast_value_t* value = ast_value_allocate((ast_expr_type_t) token->type);
-                value->text = token_text(token);
-                ast_body_add(body, (ast_expr_t*) value);
+                ast_body_add(body, (ast_expr_t*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
                 break;
-            }
             case TK_PLUS:
             case TK_MINUS:
             case TK_STAR:

@@ -35,6 +35,10 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
                     if (builder_build_body_cycle((ast_body_t*) last))
                         return true;
                     goto step;
+                case AST_CALL:
+                    if (builder_build_body_cycle(((ast_call_t*) last)->args))
+                        return true;
+                    goto step;
                 // Собираем математические выражения
                 case AST_MATH: {
                     ast_math_t* math = (ast_math_t*) last;
@@ -70,6 +74,7 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
 uint8_t builder_priority(ast_expr_t* expression) {
     switch (expression->type) {
         case AST_BODY:
+        case AST_CALL:
             return 255;
         case AST_MATH: {
             ast_math_t* math = (ast_math_t*) expression;

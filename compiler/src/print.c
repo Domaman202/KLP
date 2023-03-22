@@ -39,6 +39,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_BODY:
                 ast_body_print(indent, (ast_body_t*) expression);
                 break;
+            case AST_CALL:
+                ast_call_print(indent, (ast_call_t*) expression);
+                break;
             case AST_MATH:
                 ast_math_print(indent, (ast_math_t*) expression);
                 break;
@@ -150,6 +153,14 @@ void ast_body_print(size_t indent, ast_body_t* body) {
             printf("\n");
         }
     }
+}
+
+void ast_call_print(size_t indent, ast_call_t* call) {
+    ast_print_indent(indent);
+    printf("[Call]\n");
+    ast_print_indent(indent);
+    printf("|\t[name]\t\"%s\"\n", call->name);
+    ast_body_print(indent, call->args);
 }
 
 void ast_math_print(size_t indent, ast_math_t* math) {

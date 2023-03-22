@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+ast_expr_t* ast_empty_allocate() {
+    ast_expr_t* empty = calloc(1, sizeof(ast_expr_t));
+    empty->type = AST_EMPTY;
+    return empty;
+}
+
 ast_context_t* ast_context_allocate() {
     ast_context_t* context = calloc(1, sizeof(ast_context_t));
     context->expr.type = AST_CONTEXT;
@@ -29,6 +35,14 @@ ast_variable_t* ast_variable_allocate() {
     return variable;
 }
 
+ast_call_t* ast_call_allocate(char* name) {
+    ast_call_t* call = calloc(1, sizeof(ast_call_t));
+    call->expr.type = AST_CALL;
+    call->name = name;
+    call->args = ast_body_allocate();
+    return call;
+}
+
 ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     ast_math_t* math = calloc(1, sizeof(ast_math_t));
     math->expr.type = AST_MATH;
@@ -36,22 +50,17 @@ ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     return math;
 }
 
-ast_value_t* ast_value_allocate(ast_expr_type_t type) {
-    ast_value_t* naming = calloc(1, sizeof(ast_value_t));
-    naming->expr.type = type;
-    return naming;
+ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text) {
+    ast_value_t* value = calloc(1, sizeof(ast_value_t));
+    value->expr.type = type;
+    value->text = text;
+    return value;
 }
 
 ast_type_t* ast_type_allocate() {
     ast_type_t* type = calloc(1, sizeof(ast_type_t));
     type->expr.type = AST_TYPE;
     return type;
-}
-
-ast_expr_t* ast_empty_allocate() {
-    ast_expr_t* empty = calloc(1, sizeof(ast_expr_t));
-    empty->type = AST_EMPTY;
-    return empty;
 }
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {

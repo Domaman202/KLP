@@ -16,6 +16,7 @@ void ast_context_print(size_t indent, ast_context_t* context);
 void ast_function_print(size_t indent, ast_function_t* function);
 void ast_variable_print(size_t indent, ast_variable_t* variable);
 void ast_body_print(size_t indent, ast_body_t* body);
+void ast_call_print(size_t indent, ast_call_t* call);
 void ast_math_print(size_t indent, ast_math_t* math);
 void ast_value_print(size_t indent, ast_value_t* naming);
 void ast_type_print(ast_type_t* type);
