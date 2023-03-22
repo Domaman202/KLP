@@ -30,10 +30,12 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
         // Сравниваем приоритет
         if (builder_priority(last) == priority) {
             switch (last->type) {
+                // Собираем выражения в "телах"
                 case AST_BODY:
                     if (builder_build_body_cycle((ast_body_t*) last))
                         return true;
                     goto step;
+                // Собираем математические выражения
                 case AST_MATH: {
                     ast_math_t* math = (ast_math_t*) last;
                     // Проверяем собрано ли выражение
@@ -80,7 +82,7 @@ uint8_t builder_priority(ast_expr_t* expression) {
                 case MOP_DIV:
                     return 2;
                 case MOP_DEREFERENCE:
-                    return 3;
+                    return 255;
                 case MOP_ASSIGN:
                     return 254;
             }

@@ -203,9 +203,29 @@ ast_body_t* parser_parse_expr() {
             case TK_CLOSE_BRACKET:
             case TK_CLOSE_CUBE_BRACKET:
             case TK_CLOSE_FIGURAL_BRACKET:
+            case TK_COMMA:
             case TK_NEWLINE:
                 parser_prev();
                 return body;
+            case TK_OPEN_CUBE_BRACKET:
+                // Парсинг указателя/массива
+                ast_body_add(body, (ast_expr_t*) parser_parse_expr());
+                // Добавляем операцию
+                ast_body_add(body, (ast_expr_t*) ast_math_allocate(MOP_DEREFERENCE));
+                // Парсинг сдвига/индекса
+                token = parser_next();
+                if (token->type == TK_COMMA) {
+                    // если есть запятая - есть сдвиг/индекс
+                    ast_body_add(body, (ast_expr_t*) parser_parse_expr());
+                    parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
+                } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
+                    // если скобка закрывается - разыминовывание
+                    ast_body_add(body, ast_empty_allocate());
+                    break;
+                } else {
+                    // Иначе кидаем ошибку
+                    parser_throw(token);
+                }
             case TK_NUMBER:
             case TK_CHAR:
             case TK_STRING:

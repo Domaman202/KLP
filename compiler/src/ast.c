@@ -48,6 +48,12 @@ ast_type_t* ast_type_allocate() {
     return type;
 }
 
+ast_expr_t* ast_empty_allocate() {
+    ast_expr_t* empty = calloc(1, sizeof(ast_expr_t));
+    empty->type = AST_EMPTY;
+    return empty;
+}
+
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
     if (body->exprs) {
         ast_expr_t* last = body->exprs;

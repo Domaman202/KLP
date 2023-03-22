@@ -18,10 +18,12 @@ void ast_print_indent(size_t indent) {
 
 void ast_expr_print(size_t indent, ast_expr_t* expression) {
     if (expression == NULL) {
-        ast_print_indent(indent);
-        printf("[Null]\n");
+        ast_null_print(indent);
     } else {
         switch (expression->type) {
+            case AST_EMPTY:
+                ast_empty_print(indent);
+                break;
             case AST_CONTEXT:
                 ast_context_print(indent, (ast_context_t*) expression);
                 break;
@@ -52,6 +54,16 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
                 break;
         }
     }
+}
+
+void ast_null_print(size_t indent) {
+    ast_print_indent(indent);
+    printf("[Null]\n");
+}
+
+void ast_empty_print(size_t indent) {
+    ast_print_indent(indent);
+    printf("[Empty]\n");
 }
 
 void ast_context_print(size_t indent, ast_context_t* context) {

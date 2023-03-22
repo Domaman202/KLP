@@ -10,6 +10,8 @@
 void token_print(token_t* token, bool nss);
 
 void ast_expr_print(size_t indent, ast_expr_t* expression);
+void ast_null_print(size_t indent);
+void ast_empty_print(size_t indent);
 void ast_context_print(size_t indent, ast_context_t* context);
 void ast_function_print(size_t indent, ast_function_t* function);
 void ast_variable_print(size_t indent, ast_variable_t* variable);
