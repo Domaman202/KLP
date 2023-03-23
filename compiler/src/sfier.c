@@ -16,20 +16,19 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
     if (expr) {
         switch (expr->type) {
             case AST_BODY: {
-                ast_expr_t** exprs = &((ast_body_t*) expr)->exprs;
-                ast_expr_t** last = exprs;
+                ast_expr_t** last = &((ast_body_t*) expr)->exprs;
+                ast_expr_t* exprs = *last;
                 while (*last) {
                     ast_expr_t* simplified = sfier_simplify_expression(*last);
-                    simplified->prev = (*last)->prev;
-                    simplified->next = (*last)->next;
-                    if (simplified->next) simplified->next->prev = simplified;
+                    ast_set_prev(simplified, (*last)->prev);
+                    ast_set_next(simplified, (*last)->next);
                     *last = simplified;
                     last = &simplified->next;
                 }
-                if ((*exprs)->next) {
+                if (exprs->next) {
                     break;
                 } else {
-                    return *exprs;
+                    return exprs;
                 }
             }
             case AST_MATH: {
@@ -42,9 +41,8 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
                 ast_expr_t** last = (void*) &((ast_call_t*) expr)->args;
                 while (*last) {
                     ast_expr_t* simplified = sfier_simplify_expression(*last);
-                    simplified->prev = (*last)->prev;
-                    simplified->next = (*last)->next;
-                    if (simplified->next) simplified->next->prev = simplified;
+                    ast_set_prev(simplified, (*last)->prev);
+                    ast_set_next(simplified, (*last)->next);
                     *last = simplified;
                     last = &simplified->next;
                 }

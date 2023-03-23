@@ -50,12 +50,10 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
                     math->right = last->next;
                     // Выпиливаем левое выражение
                     ast_expr_t* pp = last->prev->prev;
-                    if (pp) pp->next = last;
-                    else body->exprs = last;
-                    last->prev = pp;
+                    ast_set_prev(last, pp);
+                    if (!pp) body->exprs = last;
                     // Выпиливаем правое выражение
-                    ast_expr_t* nn = (last->next = last->next->next);
-                    if (nn) nn->prev = last;
+                    ast_set_next(last, last->next->next);
                     // Успешный выход
                     return true;
                 }

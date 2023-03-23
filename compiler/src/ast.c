@@ -63,6 +63,16 @@ ast_type_t* ast_type_allocate() {
     return type;
 }
 
+void ast_set_next(ast_expr_t* expr, ast_expr_t* next) {
+    expr->next = next;
+    if (next) next->prev = expr;
+}
+
+void ast_set_prev(ast_expr_t* expr, ast_expr_t* prev) {
+    expr->prev = prev;
+    if (prev) prev->next = expr; 
+}
+
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
     if (body->exprs) {
         ast_expr_t* last = body->exprs;
