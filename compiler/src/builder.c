@@ -32,7 +32,7 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
             switch (last->type) {
                 // Собираем выражения в "телах"
                 case AST_BODY:
-                    if (builder_build_body_cycle((ast_body_t*) last))
+                    if (builder_build_body_cycle((void*) last))
                         return true;
                     goto step;
                 case AST_CALL:
@@ -77,7 +77,7 @@ uint8_t builder_priority(ast_expr_t* expression) {
         case AST_CALL:
             return 255;
         case AST_MATH: {
-            ast_math_t* math = (ast_math_t*) expression;
+            ast_math_t* math = (void*) expression;
             switch (math->operation) {
                 case MOP_ADD:
                 case MOP_SUB:

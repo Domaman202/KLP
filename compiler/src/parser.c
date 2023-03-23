@@ -214,14 +214,14 @@ ast_body_t* parser_parse_expr() {
                 return body;
             case TK_OPEN_CUBE_BRACKET:
                 // Парсинг указателя/массива
-                ast_body_add(body, (ast_expr_t*) parser_parse_expr());
+                ast_body_add(body, (void*) parser_parse_expr());
                 // Добавляем операцию
-                ast_body_add(body, (ast_expr_t*) ast_math_allocate(MOP_DEREFERENCE));
+                ast_body_add(body, (void*) ast_math_allocate(MOP_DEREFERENCE));
                 // Парсинг сдвига/индекса
                 token = parser_next();
                 if (token->type == TK_COMMA) {
                     // если есть запятая - есть сдвиг/индекс
-                    ast_body_add(body, (ast_expr_t*) parser_parse_expr());
+                    ast_body_add(body, (void*) parser_parse_expr());
                     parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
                 } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
                     // если скобка закрывается - разыминовывание
@@ -237,10 +237,10 @@ ast_body_t* parser_parse_expr() {
                 if (ntoken->type == TK_OPEN_BRACKET) {
                     // Парсим вызов функции
                     ast_call_t* call = ast_call_allocate(token_text(token));
-                    ast_body_add(body, (ast_expr_t*) call);
+                    ast_body_add(body, (void*) call);
                     // Парсинг аргументов
                     while (1) {
-                        ast_body_add(call->args, (ast_expr_t*) parser_parse_expr());
+                        ast_body_add(call->args, (void*) parser_parse_expr());
                         // Парсинг аргументов
                         token = parser_next();
                         if (token->type == TK_COMMA) { // если есть запятая - парсим следующий аргумент
@@ -259,13 +259,13 @@ ast_body_t* parser_parse_expr() {
             case TK_NUMBER:
             case TK_CHAR:
             case TK_STRING:
-                ast_body_add(body, (ast_expr_t*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
+                ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
                 break;
             case TK_PLUS:
             case TK_MINUS:
             case TK_STAR:
             case TK_ASSIGN:
-                ast_body_add(body, (ast_expr_t*) ast_math_allocate((ast_math_oper_t) token->type));
+                ast_body_add(body, (void*) ast_math_allocate((ast_math_oper_t) token->type));
                 break;
             default:
                 parser_throw(token);

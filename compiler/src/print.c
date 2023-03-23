@@ -25,31 +25,31 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
                 ast_empty_print(indent);
                 break;
             case AST_CONTEXT:
-                ast_context_print(indent, (ast_context_t*) expression);
+                ast_context_print(indent, (void*) expression);
                 break;
             case AST_FUNCTION:
-                ast_function_print(indent, (ast_function_t*) expression);
+                ast_function_print(indent, (void*) expression);
                 break;
             case AST_VARIABLE:
-                ast_variable_print(indent, (ast_variable_t*) expression);
+                ast_variable_print(indent, (void*) expression);
                 break;
             case AST_TYPE:
-                ast_type_print((ast_type_t*) expression);
+                ast_type_print((void*) expression);
                 break;
             case AST_BODY:
-                ast_body_print(indent, (ast_body_t*) expression);
+                ast_body_print(indent, (void*) expression);
                 break;
             case AST_CALL:
-                ast_call_print(indent, (ast_call_t*) expression);
+                ast_call_print(indent, (void*) expression);
                 break;
             case AST_MATH:
-                ast_math_print(indent, (ast_math_t*) expression);
+                ast_math_print(indent, (void*) expression);
                 break;
             case AST_NUMBER:
             case AST_CHAR:
             case AST_STRING:
             case AST_NAMING:
-                ast_value_print(indent, (ast_value_t*) expression);
+                ast_value_print(indent, (void*) expression);
                 break;
             default:
                 ast_print_indent(indent);
