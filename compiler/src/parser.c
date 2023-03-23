@@ -261,9 +261,13 @@ ast_body_t* parser_parse_expr() {
             case TK_STRING:
                 ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
                 break;
+            case TK_AMPERSAND:
+            case TK_PIPE:
+            case TK_CIRCUMFLEX:
             case TK_PLUS:
             case TK_MINUS:
             case TK_STAR:
+            case TK_EXCLAMINATION:
             case TK_ASSIGN:
                 ast_body_add(body, (void*) ast_math_allocate((ast_math_oper_t) token->type));
                 break;

@@ -94,6 +94,11 @@ struct ast_call {
 };
 
 enum ast_math_oper {
+    // Логические операции
+    MOP_NOT         = TK_EXCLAMINATION,
+    MOP_AND         = TK_AMPERSAND,
+    MOP_OR          = TK_PIPE,
+    MOP_XOR         = TK_CIRCUMFLEX,
     // Математические операции
     MOP_ADD         = TK_PLUS,
     MOP_SUB         = TK_MINUS,

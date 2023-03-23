@@ -43,17 +43,16 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
                 case AST_MATH: {
                     ast_math_t* math = (ast_math_t*) last;
                     // Проверяем собрано ли выражение
-                    if (math->left)
+                    if (math->left || math->right)
                         goto step; // Если да, то перебираем дальше
-                    // Собираем выражение
-                    math->left = last->prev;
-                    math->right = last->next;
-                    // Выпиливаем левое выражение
-                    ast_expr_t* pp = last->prev->prev;
-                    ast_set_prev(last, pp);
-                    if (!pp) body->exprs = last;
-                    // Выпиливаем правое выражение
-                    ast_set_next(last, last->next->next);
+                    // Собираем выражение (слево)
+                    if (math->operation != MOP_NOT) {
+                        ast_expr_t* pp = (math->left = last->prev)->prev;
+                        ast_set_prev(last, pp);
+                        if (!pp) body->exprs = last;
+                    }
+                    // Собираем выражение (справа)
+                    ast_set_next(last, (math->right = last->next)->next);
                     // Успешный выход
                     return true;
                 }
@@ -72,21 +71,28 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
 uint8_t builder_priority(ast_expr_t* expression) {
     switch (expression->type) {
         case AST_BODY:
-        case AST_CALL:
             return 255;
+        case AST_CALL:
+            return 254;
         case AST_MATH: {
             ast_math_t* math = (void*) expression;
             switch (math->operation) {
+                case MOP_NOT:
+                    return 5;
+                case MOP_AND:
+                case MOP_OR:
+                case MOP_XOR:
+                    return 4;
                 case MOP_ADD:
                 case MOP_SUB:
-                    return 1;
+                    return 2;
                 case MOP_MUL:
                 case MOP_DIV:
-                    return 2;
+                    return 3;
                 case MOP_DEREFERENCE:
-                    return 255;
-                case MOP_ASSIGN:
                     return 254;
+                case MOP_ASSIGN:
+                    return 1;
             }
         }
         case AST_NUMBER:
