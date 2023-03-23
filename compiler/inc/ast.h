@@ -1,6 +1,8 @@
 #ifndef __AST_H__
 #define __AST_H__
 
+#include <token.h>
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -26,10 +28,10 @@ enum ast_expr_type {
     AST_BODY        = 0x5,
     AST_MATH        = 0x6,
     AST_CALL        = 0x7,
-    AST_NUMBER      = 0x19,
-    AST_CHAR        = 0x1A,
-    AST_STRING      = 0x1B,
-    AST_NAMING      = 0x1C
+    AST_NUMBER      = TK_NUMBER,
+    AST_CHAR        = TK_CHAR,
+    AST_STRING      = TK_STRING,
+    AST_NAMING      = TK_NAMING
 };
 
 
@@ -93,14 +95,14 @@ struct ast_call {
 
 enum ast_math_oper {
     // Математические операции
-    MOP_ADD         = 0xC,
-    MOP_SUB         = 0xD,
-    MOP_MUL         = 0xE,
-    MOP_DIV         = 0xF,
+    MOP_ADD         = TK_PLUS,
+    MOP_SUB         = TK_MINUS,
+    MOP_MUL         = TK_STAR,
+    MOP_DIV         = TK_SLASH,
     // Разыминовывание
-    MOP_DEREFERENCE = 0x2,
+    MOP_DEREFERENCE = TK_OPEN_CUBE_BRACKET,
     // Присваивание
-    MOP_ASSIGN      = 0x18,
+    MOP_ASSIGN      = TK_ASSIGN,
 };
 
 struct ast_math {
