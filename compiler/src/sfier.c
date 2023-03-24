@@ -1,4 +1,5 @@
 #include <sfier.h>
+#include <print.h>
 
 #include <stddef.h>
 
@@ -15,13 +16,21 @@ void sfier_simplify_function(ast_function_t* function) {
 ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
     if (expr) {
         switch (expr->type) {
+            case AST_ANNOTATION:
+            case AST_CALL: {
+                ast_expr_t** args = (void*) &((ast_con_t*) expr)->args;
+                *args = sfier_simplify_expression(*args);
+                break;
+            }
             case AST_BODY: {
                 ast_expr_t** last = &((ast_body_t*) expr)->exprs;
                 ast_expr_t* exprs = *last;
                 while (*last) {
+                    ast_expr_t* prev = (*last)->prev;
+                    ast_expr_t* next = (*last)->next;
                     ast_expr_t* simplified = sfier_simplify_expression(*last);
-                    ast_set_prev(simplified, (*last)->prev);
-                    ast_set_next(simplified, (*last)->next);
+                    ast_set_prev(simplified, prev);
+                    ast_set_next(simplified, next);
                     *last = simplified;
                     last = &simplified->next;
                 }
@@ -37,17 +46,6 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
                 math->right = sfier_simplify_expression(math->right);
                 break;
             }
-            case AST_CALL: {
-                ast_expr_t** last = (void*) &((ast_call_t*) expr)->args;
-                while (*last) {
-                    ast_expr_t* simplified = sfier_simplify_expression(*last);
-                    ast_set_prev(simplified, (*last)->prev);
-                    ast_set_next(simplified, (*last)->next);
-                    *last = simplified;
-                    last = &simplified->next;
-                }
-                break;
-            } 
             default:
                 break;
         }

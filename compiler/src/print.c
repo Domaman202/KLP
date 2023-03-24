@@ -27,6 +27,10 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_CONTEXT:
                 ast_context_print(indent, (void*) expression);
                 break;
+            case AST_ANNOTATION:
+            case AST_CALL:
+                ast_con_print(indent, (void*) expression);
+                break;
             case AST_FUNCTION:
                 ast_function_print(indent, (void*) expression);
                 break;
@@ -39,8 +43,6 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_BODY:
                 ast_body_print(indent, (void*) expression);
                 break;
-            case AST_CALL:
-                ast_call_print(indent, (void*) expression);
                 break;
             case AST_MATH:
                 ast_math_print(indent, (void*) expression);
@@ -92,6 +94,14 @@ void ast_context_print(size_t indent, ast_context_t* context) {
             printf("\n");
         }
     }
+}
+
+void ast_con_print(size_t indent, ast_con_t* con) {
+    ast_print_indent(indent);
+    printf(con->expr.type == AST_ANNOTATION ? "[Annotation]\n" : "[Call]\n");
+    ast_print_indent(indent);
+    printf("|\t[name]\t\"%s\"\n", con->name);
+    ast_body_print(indent, con->args);
 }
 
 void ast_function_print(size_t indent, ast_function_t* function) {
@@ -153,14 +163,6 @@ void ast_body_print(size_t indent, ast_body_t* body) {
             printf("\n");
         }
     }
-}
-
-void ast_call_print(size_t indent, ast_call_t* call) {
-    ast_print_indent(indent);
-    printf("[Call]\n");
-    ast_print_indent(indent);
-    printf("|\t[name]\t\"%s\"\n", call->name);
-    ast_body_print(indent, call->args);
 }
 
 void ast_math_print(size_t indent, ast_math_t* math) {

@@ -30,13 +30,15 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
         // Сравниваем приоритет
         if (builder_priority(last) == priority) {
             switch (last->type) {
+                // Собираем аргументы
+                case AST_ANNOTATION:
+                case AST_CALL:
+                    if (builder_build_body_cycle(((ast_con_t*) last)->args))
+                        return true;
+                    goto step;
                 // Собираем выражения в "телах"
                 case AST_BODY:
                     if (builder_build_body_cycle((void*) last))
-                        return true;
-                    goto step;
-                case AST_CALL:
-                    if (builder_build_body_cycle(((ast_call_t*) last)->args))
                         return true;
                     goto step;
                 // Собираем математические выражения
@@ -109,12 +111,12 @@ uint8_t builder_priority(ast_expr_t* expression) {
                     return BUILDER_PG_H;
             }
         }
-        case AST_CALL:
-            return BUILDER_PG_H;
+        case AST_ANNOTATION:
         case AST_BODY:
+        case AST_CALL:
             return BUILDER_PG_H;
         // todo:
         default:
-            return 0;
+            return BUILDER_PG_NB;
     }
 }

@@ -40,6 +40,7 @@ void parser_prev();
 token_t* parser_next();
 token_t* parser_cnext(unsigned int argc, ...);
 
+ast_con_t* parser_parse_con(bool annotation);
 ast_function_t* parser_parse_function();
 ast_variable_t* parser_parse_variable(bool global);
 ast_body_t* parser_parse_body();

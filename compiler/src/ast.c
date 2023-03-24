@@ -35,12 +35,12 @@ ast_variable_t* ast_variable_allocate() {
     return variable;
 }
 
-ast_call_t* ast_call_allocate(char* name) {
-    ast_call_t* call = calloc(1, sizeof(ast_call_t));
-    call->expr.type = AST_CALL;
-    call->name = name;
-    call->args = ast_body_allocate();
-    return call;
+ast_con_t* ast_con_allocate(ast_expr_type_t type, char* name) {
+    ast_con_t* con = calloc(1, sizeof(ast_con_t));
+    con->expr.type = type;
+    con->name = name;
+    con->args = ast_body_allocate();
+    return con;
 }
 
 ast_math_t* ast_math_allocate(ast_math_oper_t operation) {

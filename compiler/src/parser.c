@@ -70,6 +70,25 @@ token_t* parser_cnext(unsigned int argc, ...) {
     parser_throw(token);
 }
 
+ast_con_t* parser_parse_con(bool annotation) {
+    // Парсим имя
+    ast_con_t* con = ast_con_allocate(annotation ? AST_ANNOTATION : AST_CALL, token_text(parser_cnext(1, TK_NAMING)));
+    // Парсинг аргументов
+    parser_cnext(1, TK_OPEN_BRACKET);
+    while (1) {
+        ast_body_add(con->args, (void*) parser_parse_expr());
+        // Парсинг аргументов
+        token_t* token = parser_cnext(2, TK_COMMA, TK_CLOSE_BRACKET);
+        if (token->type == TK_COMMA) { // если есть запятая - парсим следующий аргумент
+            continue;
+        } else if (token->type == TK_CLOSE_BRACKET) { // если закрывается скобка - конец выражения вызова функции
+            break;
+        }
+    }
+    // Выход
+    return con;
+}
+
 ast_function_t* parser_parse_function() {
     token_t* token = parser_next();
     if (token->type == TK_NAMING) {
@@ -233,27 +252,13 @@ ast_body_t* parser_parse_expr() {
                 }
             case TK_NAMING: {
                 // Проверка на вызов функции
-                token_t* ntoken = parser_next();
+                token_t* ntoken = parser->token;
                 if (ntoken->type == TK_OPEN_BRACKET) {
                     // Парсим вызов функции
-                    ast_call_t* call = ast_call_allocate(token_text(token));
-                    ast_body_add(body, (void*) call);
-                    // Парсинг аргументов
-                    while (1) {
-                        ast_body_add(call->args, (void*) parser_parse_expr());
-                        // Парсинг аргументов
-                        token = parser_next();
-                        if (token->type == TK_COMMA) { // если есть запятая - парсим следующий аргумент
-                            continue;
-                        } else if (token->type == TK_CLOSE_BRACKET) { // если закрывается скобка - конец выражения вызова функции
-                            break;
-                        } else {
-                            // Иначе кидаем ошибку
-                            parser_throw(token);
-                        }
-                    }
+                    parser_prev();
+                    ast_body_add(body, (void*) parser_parse_con(false));
                     break;
-                } else parser_prev();
+                }
                 // Парсим наименование
             }
             case TK_NUMBER:
@@ -278,6 +283,9 @@ ast_body_t* parser_parse_expr() {
             case VTK_GOE:
             case VTK_LOE:
                 ast_body_add(body, (void*) ast_math_allocate((ast_math_oper_t) token->type));
+                break;
+            case TK_DOG:
+                ast_body_add(body, (void*) parser_parse_con(true));
                 break;
             default:
                 parser_throw(token);

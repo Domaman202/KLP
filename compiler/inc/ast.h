@@ -12,7 +12,7 @@ typedef struct ast_context ast_context_t;
 typedef struct ast_function ast_function_t;
 typedef struct ast_variable ast_variable_t;
 typedef struct ast_body ast_body_t;
-typedef struct ast_call ast_call_t;
+typedef struct ast_con ast_con_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
 typedef struct ast_pointer ast_pointer_t;
@@ -22,12 +22,17 @@ typedef struct ast_type ast_type_t;
 enum ast_expr_type {
     AST_EMPTY       = 0x0,
     AST_CONTEXT     = 0x1,
-    AST_FUNCTION    = 0x2,
-    AST_VARIABLE    = 0x3,
-    AST_TYPE        = 0x4,
-    AST_BODY        = 0x5,
-    AST_MATH        = 0x6,
-    AST_CALL        = 0x7,
+
+    AST_ANNOTATION  = 0x2,
+    AST_TYPE        = 0x3,
+
+    AST_FUNCTION    = 0x4,
+    AST_VARIABLE    = 0x5,
+
+    AST_BODY        = 0x6,
+    AST_MATH        = 0x7,
+    AST_CALL        = 0x8,
+    
     AST_NUMBER      = TK_NUMBER,
     AST_CHAR        = TK_CHAR,
     AST_STRING      = TK_STRING,
@@ -86,7 +91,7 @@ struct ast_body {
 
 //
 
-struct ast_call {
+struct ast_con {
     ast_expr_t expr;
     //
     char* name;
@@ -149,7 +154,7 @@ ast_function_t* ast_function_allocate();
 ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
-ast_call_t* ast_call_allocate(char* name);
+ast_con_t* ast_con_allocate(ast_expr_type_t type, char* name);
 ast_math_t* ast_math_allocate(ast_math_oper_t operation);
 ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text);
 
