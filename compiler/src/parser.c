@@ -261,6 +261,10 @@ ast_body_t* parser_parse_expr() {
             case TK_STRING:
                 ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
                 break;
+            case TK_GREAT:
+            case VTK_RIGHT_SHIFT:
+            case TK_LESS:
+            case VTK_LEFT_SHIFT:
             case TK_AMPERSAND:
             case TK_PIPE:
             case TK_CIRCUMFLEX:
@@ -269,6 +273,10 @@ ast_body_t* parser_parse_expr() {
             case TK_STAR:
             case TK_EXCLAMINATION:
             case TK_ASSIGN:
+            case VTK_EQ:
+            case VTK_NEQ:
+            case VTK_GOE:
+            case VTK_LOE:
                 ast_body_add(body, (void*) ast_math_allocate((ast_math_oper_t) token->type));
                 break;
             default:

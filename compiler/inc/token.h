@@ -16,8 +16,10 @@ enum token_type {
     TK_CLOSE_FIGURAL_BRACKET    = 0x5, /* } */
 
     // Стрелки
-    TK_GREAT                    = 0x6, /* > */
-    TK_LESS                     = 0x7, /* < */
+    TK_GREAT                    = 0x6,  /* >  */
+    VTK_RIGHT_SHIFT             = 0x20, /* >> */
+    TK_LESS                     = 0x7,  /* <  */
+    VTK_LEFT_SHIFT              = 0x21, /* << */
 
     // Битовые операции
     TK_AMPERSAND                = 0x8, /* & */
@@ -41,6 +43,12 @@ enum token_type {
     TK_SHARP                    = 0x16, /* # */
     TK_DOG                      = 0x17, /* @ */
     TK_ASSIGN                   = 0x18, /* = */
+
+    // Остальные виртуальные символы
+    VTK_EQ                      = 0x22, /* == */
+    VTK_NEQ                     = 0x23, /* != */
+    VTK_GOE                     = 0x24, /* >= */
+    VTK_LOE                     = 0x25, /* <= */
 
     // Числа/Символы/Строки/Названия
     TK_NUMBER                   = 0x19, /* 0123456789   */

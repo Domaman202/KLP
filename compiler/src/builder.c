@@ -70,36 +70,49 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
 
 uint8_t builder_priority(ast_expr_t* expression) {
     switch (expression->type) {
-        case AST_BODY:
-            return 255;
-        case AST_CALL:
-            return 254;
-        case AST_MATH: {
-            ast_math_t* math = (void*) expression;
-            switch (math->operation) {
-                case MOP_NOT:
-                    return 5;
-                case MOP_AND:
-                case MOP_OR:
-                case MOP_XOR:
-                    return 4;
-                case MOP_ADD:
-                case MOP_SUB:
-                    return 2;
-                case MOP_MUL:
-                case MOP_DIV:
-                    return 3;
-                case MOP_DEREFERENCE:
-                    return 254;
-                case MOP_ASSIGN:
-                    return 1;
-            }
-        }
         case AST_NUMBER:
         case AST_CHAR:
         case AST_STRING:
         case AST_NAMING:
-            return 0;
+            return BUILDER_PG_NB;
+        case AST_MATH: {
+            ast_math_t* math = (void*) expression;
+            switch (math->operation) {
+                case MOP_ASSIGN:
+                    return BUILDER_PG_L;
+                case MOP_OR:
+                    return BUILDER_PG_12;
+                case MOP_XOR:
+                    return BUILDER_PG_11;
+                case MOP_AND:
+                    return BUILDER_PG_10;
+                case MOP_EQ:
+                case MOP_NEQ:
+                    return BUILDER_PG_9;
+                case MOP_GREAT:
+                case MOP_GOE:
+                case MOP_LESS:
+                case MOP_LOE:
+                    return BUILDER_PG_8;
+                case MOP_RIGHT_SHIFT:
+                case MOP_LEFT_SHIFT:
+                    return BUILDER_PG_7;
+                case MOP_ADD:
+                case MOP_SUB:
+                    return BUILDER_PG_6;
+                case MOP_MUL:
+                case MOP_DIV:
+                    return BUILDER_PG_5;
+                case MOP_NOT:
+                    return BUILDER_PG_3;
+                case MOP_DEREFERENCE:
+                    return BUILDER_PG_H;
+            }
+        }
+        case AST_CALL:
+            return BUILDER_PG_H;
+        case AST_BODY:
+            return BUILDER_PG_H;
         // todo:
         default:
             return 0;

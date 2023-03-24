@@ -83,7 +83,11 @@ lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch) {
                 break;
             case '!':
                 str++;
-                token->type = TK_EXCLAMINATION;
+                if (*str == '=') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_NEQ;
+                } else token->type = TK_EXCLAMINATION;
                 break;
             case ':':
                 str++;
@@ -123,7 +127,11 @@ lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch) {
                 break;
             case '=':
                 str++;
-                token->type = TK_ASSIGN;
+                if (*str == '=') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_EQ;
+                } else token->type = TK_ASSIGN;
                 break;
             case '+':
                 str++;
@@ -143,11 +151,27 @@ lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch) {
                 break;
             case '>':
                 str++;
-                token->type = TK_GREAT;
+                if (*str == '>') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_RIGHT_SHIFT;
+                } else if (*str == '=') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_GOE;
+                } else token->type = TK_GREAT;
                 break;
             case '<':
                 str++;
-                token->type = TK_LESS;
+                if (*str == '<') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_LEFT_SHIFT;
+                } else if (*str == '=') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_LOE;
+                } else token->type = TK_LESS;
                 break;
             case '\'':
                 str += 2;

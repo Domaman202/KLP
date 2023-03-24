@@ -94,16 +94,25 @@ struct ast_call {
 };
 
 enum ast_math_oper {
-    // Логические операции
+    // Битовые операции
     MOP_NOT         = TK_EXCLAMINATION,
     MOP_AND         = TK_AMPERSAND,
     MOP_OR          = TK_PIPE,
     MOP_XOR         = TK_CIRCUMFLEX,
+    MOP_RIGHT_SHIFT = VTK_RIGHT_SHIFT,
+    MOP_LEFT_SHIFT  = VTK_LEFT_SHIFT,
     // Математические операции
     MOP_ADD         = TK_PLUS,
     MOP_SUB         = TK_MINUS,
     MOP_MUL         = TK_STAR,
     MOP_DIV         = TK_SLASH,
+    // Сравнение
+    MOP_EQ          = VTK_EQ,
+    MOP_NEQ         = VTK_NEQ,
+    MOP_GREAT       = TK_GREAT,
+    MOP_GOE         = VTK_GOE,
+    MOP_LESS        = TK_LESS,
+    MOP_LOE         = VTK_LOE,
     // Разыминовывание
     MOP_DEREFERENCE = TK_OPEN_CUBE_BRACKET,
     // Присваивание

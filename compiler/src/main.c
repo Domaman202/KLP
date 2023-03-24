@@ -41,7 +41,7 @@ int main() {
         token_print(lres.error, true);
         return 1;
     }
-    /// Parser
+    // /// Parser
     parser_parse_result_t pres = parser_parse(lres.tokens);
     ast_context_t* context = pres.context;
     /// Parser Print
