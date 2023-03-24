@@ -17,7 +17,8 @@ typedef enum builder_priority_group {
     BUILDER_PG_6, /* Приоритет группы 6 */
     BUILDER_PG_5, /* Приоритет группы 5 */
     BUILDER_PG_3, /* Приоритет группы 3 */
-    BUILDER_PG_H /* Собираются в первую очередь */
+    BUILDER_PG_H, /* Собираются в первую очередь */
+    BUILDER_PG_A /* Аннотации собираются раньше всего */
 } builder_priority_group_t;
 
 void builder_build_context(ast_context_t* context);

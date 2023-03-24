@@ -41,7 +41,7 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
                 ast_type_print((void*) expression);
                 break;
             case AST_BODY:
-                ast_body_print(indent, (void*) expression);
+                ast_body_print(indent, (void*) expression, "Body");
                 break;
                 break;
             case AST_MATH:
@@ -101,7 +101,14 @@ void ast_con_print(size_t indent, ast_con_t* con) {
     printf(con->expr.type == AST_ANNOTATION ? "[Annotation]\n" : "[Call]\n");
     ast_print_indent(indent);
     printf("|\t[name]\t\"%s\"\n", con->name);
-    ast_body_print(indent, con->args);
+    ast_body_print(indent + 1, con->args, "arguments");
+    ast_annotation_print(indent, (void*) con);
+}
+
+void ast_annotation_print(size_t indent, ast_expr_t* expression) {
+    if (expression->annotations && expression->annotations->exprs) {
+        ast_body_print(indent + 1, expression->annotations, "annotations");
+    }
 }
 
 void ast_function_print(size_t indent, ast_function_t* function) {
@@ -127,9 +134,9 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     printf("\n");
     ast_print_indent(indent);
     printf("|\t[ext]\t%d\n", function->external);
-    if (!function->external) {
-        ast_body_print(indent, function->body);
-    }
+    if (!function->external)
+        ast_body_print(indent + 1, function->body, "body");
+    ast_annotation_print(indent, (void*) function);
 }
 
 void ast_variable_print(size_t indent, ast_variable_t* variable) {
@@ -148,14 +155,14 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
     if (variable->global) {
         ast_print_indent(indent);
         printf("|\t[ext]\t%d\n", variable->external);
-    } else if (variable->assign) {
+    } else if (variable->assign)
         ast_expr_print(indent, variable->assign);
-    }
+    ast_annotation_print(indent, (void*) variable);
 }
 
-void ast_body_print(size_t indent, ast_body_t* body) {
+void ast_body_print(size_t indent, ast_body_t* body, char* text) {
     ast_print_indent(indent);
-    printf("[Body]\n");
+    printf("[%s]\n", text);
     for (ast_expr_t* expr = body->exprs; expr != NULL; expr = expr->next) {
         ast_expr_print(indent + 1, expr);
         if (expr->next) {
@@ -163,6 +170,7 @@ void ast_body_print(size_t indent, ast_body_t* body) {
             printf("\n");
         }
     }
+    ast_annotation_print(indent, (void*) body);
 }
 
 void ast_math_print(size_t indent, ast_math_t* math) {
@@ -172,6 +180,7 @@ void ast_math_print(size_t indent, ast_math_t* math) {
     printf("[Operation]\t0x%x\n", math->operation);
     ast_expr_print(indent + 1, math->left);
     ast_expr_print(indent + 1, math->right);
+    ast_annotation_print(indent, (void*) math);
 }
 
 void ast_value_print(size_t indent, ast_value_t* value) {
@@ -198,6 +207,7 @@ void ast_value_print(size_t indent, ast_value_t* value) {
             return;
     }
     printf("\t%s\n", value->text);
+    ast_annotation_print(indent, (void*) value);
 }
 
 void ast_type_print(ast_type_t* type) {

@@ -23,8 +23,8 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
                 break;
             }
             case AST_BODY: {
-                ast_expr_t** last = &((ast_body_t*) expr)->exprs;
-                ast_expr_t* exprs = *last;
+                ast_body_t* body = (void*) expr;
+                ast_expr_t** last = &body->exprs;
                 while (*last) {
                     ast_expr_t* prev = (*last)->prev;
                     ast_expr_t* next = (*last)->next;
@@ -34,11 +34,9 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
                     *last = simplified;
                     last = &simplified->next;
                 }
-                if (exprs->next) {
+                if (body->exprs->next)
                     break;
-                } else {
-                    return exprs;
-                }
+                return body->exprs;
             }
             case AST_MATH: {
                 ast_math_t* math = (void*) expr;

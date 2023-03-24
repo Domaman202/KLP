@@ -30,8 +30,15 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
         // Сравниваем приоритет
         if (builder_priority(last) == priority) {
             switch (last->type) {
-                // Собираем аргументы
+                // Присваиваем аннотацию
                 case AST_ANNOTATION:
+                    // Выпиливаем аннотацию из списка выражений
+                    if (!last->prev) body->exprs = last->next;
+                    ast_set_prev(last->next, last->prev);
+                    // Присваиваем аннотацию переднему выражению
+                    ast_add_annotation(last->next, (void*) last);
+                    last->next = NULL;
+                    // Собираем аргументы
                 case AST_CALL:
                     if (builder_build_body_cycle(((ast_con_t*) last)->args))
                         return true;
@@ -111,10 +118,11 @@ uint8_t builder_priority(ast_expr_t* expression) {
                     return BUILDER_PG_H;
             }
         }
-        case AST_ANNOTATION:
         case AST_BODY:
         case AST_CALL:
             return BUILDER_PG_H;
+        case AST_ANNOTATION:
+            return BUILDER_PG_A;
         // todo:
         default:
             return BUILDER_PG_NB;

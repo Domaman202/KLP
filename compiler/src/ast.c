@@ -73,6 +73,12 @@ void ast_set_prev(ast_expr_t* expr, ast_expr_t* prev) {
     if (prev) prev->next = expr; 
 }
 
+void ast_add_annotation(ast_expr_t* expr, ast_con_t* annotation) {
+    if (!expr->annotations)
+        expr->annotations = ast_body_allocate();
+    ast_body_add(expr->annotations, (void*) annotation);
+}
+
 void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
     if (body->exprs) {
         ast_expr_t* last = body->exprs;

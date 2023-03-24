@@ -89,7 +89,15 @@ ast_con_t* parser_parse_con(bool annotation) {
     return con;
 }
 
-ast_function_t* parser_parse_function() {
+ast_con_t* parser_parse_annotation() {
+    token_t* token = parser_next();
+    if (token->type == TK_DOG)
+        return parser_parse_con(true);
+    parser_prev();
+    return NULL;
+}
+
+ast_function_t* parser_parse_function(ast_body_t* ans) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING) {
         if (util_token_cmpfree(token, "fun")) {
@@ -131,13 +139,14 @@ ast_function_t* parser_parse_function() {
                 function->body = parser_parse_body();
             }
             // Выход
+            function->expr.annotations = ans;
             return function;
         } else parser_prev();
     } else parser_prev();
     return NULL;
 }
 
-ast_variable_t* parser_parse_variable(bool global) {
+ast_variable_t* parser_parse_variable(ast_body_t* ans, bool global) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING) {
         if (util_token_cmpfree(token, "var")) {
@@ -179,6 +188,7 @@ ast_variable_t* parser_parse_variable(bool global) {
                 }
             } else parser_prev();
             // Выход
+            variable->expr.annotations = ans;
             return variable;
         } else parser_prev();
     } else parser_prev();
@@ -322,19 +332,35 @@ parser_parse_result_t parser_parse(token_t* token) {
     parser->context = context;
     // Установка обработчика ошибок
     if (setjmp(parser->catch) == 0) {
+        //
+        ast_body_t* ans = ast_body_allocate();
         // Проходимся по токенам
         while (parser->token->type != TK_EOF) {
             // Пропускаем бесполезные токены
             parser_skip();
+            // Парсим аннотацию
+            void* annotation = parser_parse_annotation();
+            if (annotation != NULL) {
+                ast_body_add(ans, annotation);
+                continue;
+            }
             // Парсим переменную
-            ast_variable_t* variable = parser_parse_variable(true);
+            void* variable = parser_parse_variable(ans, true);
             if (variable != NULL) {
-                context->vars = (void*) util_reallocadd((void*) context->vars, (void*) variable, ++context->varc);
+                context->vars = (void*) util_reallocadd((void*) context->vars, variable, ++context->varc);
+                goto reset;
             }
             // Парсим функцию
-            ast_function_t* function = parser_parse_function();
+            void* function = parser_parse_function(ans);
             if (function != NULL) {
-                context->funs = (void*) util_reallocadd((void*) context->funs, (void*) function, ++context->func);
+                context->funs = (void*) util_reallocadd((void*) context->funs, function, ++context->func);
+                goto reset;
+            }
+            // Если ничего не смогли разобрать кидаем исключение
+            parser_throw(parser->token);
+            // Сбрасываем аннотации
+            reset: {
+                ans = ast_body_allocate();
             }
         }
     }
