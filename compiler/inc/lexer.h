@@ -14,20 +14,9 @@ struct lexer_next_result {
     struct token* token;
 };
 
-/*
-    tokens  - успешные токены
-    error   - ошибочный токен
-*/
-struct lexer_lex_result {
-    struct token* tokens;
-    struct token* error;
-};
-
-extern token_t* lexer_error;
-
 token_t* token_allocate(char* str, token_t* prev);
 char* token_text(token_t* token);
 lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch);
-lexer_lex_result_t lexer_lex(char* src);
+token_t* lexer_lex(char* src);
 
 #endif /* __LEXER_H__ */

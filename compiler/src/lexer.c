@@ -225,7 +225,7 @@ lexer_next_result_t lexer_next(char* str, token_t* prev, jmp_buf catch) {
     return result;
 }
 
-lexer_lex_result_t lexer_lex(char* src) {
+token_t* lexer_lex(char* src) {
     // Обнуляем ошибки
     lexer_error = NULL;
     // Инициализация
@@ -244,7 +244,6 @@ lexer_lex_result_t lexer_lex(char* src) {
                 break;
         }
     }
-    // Конец
-    lexer_lex_result_t result = { first->next, lexer_error };
-    return result;
+    // Выход
+    return first->next;
 }

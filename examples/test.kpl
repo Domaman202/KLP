@@ -1,5 +1,6 @@
-var i: ptr<i32>
-
-fun foo(a: i32, b: i32): i32 = {
-    @cast(i64) (a + b)
+struct foo_args_t {
+    var a: i32
+    var b: i32
 }
+
+fun add(args: foo_args_t): i32 = { [args a] + [args b] }

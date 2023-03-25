@@ -4,8 +4,13 @@
 #include <ast.h>
 #include <lexer.h>
 
+#include <stdio.h>
 #include <stddef.h>
 #include <stdbool.h>
+
+extern FILE* print_stream;
+
+void print_init();
 
 void token_print(token_t* token, bool nss);
 
@@ -13,8 +18,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression);
 void ast_null_print(size_t indent);
 void ast_empty_print(size_t indent);
 void ast_context_print(size_t indent, ast_context_t* context);
-void ast_con_print(size_t indent, ast_con_t* call);
+void ast_ac_print(size_t indent, ast_ac_t* ac);
 void ast_annotation_print(size_t indent, ast_expr_t* expression);
+void ast_struct_print(size_t indent, ast_struct_t* structure);
 void ast_function_print(size_t indent, ast_function_t* function);
 void ast_variable_print(size_t indent, ast_variable_t* variable);
 void ast_body_print(size_t indent, ast_body_t* body, char* text);

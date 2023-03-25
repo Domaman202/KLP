@@ -9,10 +9,11 @@
 typedef enum ast_expr_type ast_expr_type_t;
 typedef struct ast_expr ast_expr_t;
 typedef struct ast_context ast_context_t;
+typedef struct ast_ac ast_ac_t;
+typedef struct ast_struct ast_struct_t;
 typedef struct ast_function ast_function_t;
 typedef struct ast_variable ast_variable_t;
 typedef struct ast_body ast_body_t;
-typedef struct ast_con ast_con_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
 typedef struct ast_pointer ast_pointer_t;
@@ -26,12 +27,13 @@ enum ast_expr_type {
     AST_ANNOTATION  = 0x2,
     AST_TYPE        = 0x3,
 
-    AST_FUNCTION    = 0x4,
-    AST_VARIABLE    = 0x5,
+    AST_STRUCT      = 0x4,
+    AST_FUNCTION    = 0x5,
+    AST_VARIABLE    = 0x6,
 
-    AST_BODY        = 0x6,
-    AST_MATH        = 0x7,
-    AST_CALL        = 0x8,
+    AST_BODY        = 0x7,
+    AST_MATH        = 0x8,
+    AST_CALL        = 0x9,
     
     AST_NUMBER      = TK_NUMBER,
     AST_CHAR        = TK_CHAR,
@@ -49,6 +51,30 @@ struct ast_expr {
 
 struct ast_context {
     ast_expr_t expr;
+    //
+    uint8_t varc;
+    ast_variable_t** vars;
+    //
+    uint8_t func;
+    ast_function_t** funs;
+    //
+    uint8_t structc;
+    ast_struct_t** structs;
+};
+
+// Annotation/Call
+struct ast_ac {
+    ast_expr_t expr;
+    //
+    char* name;
+    ast_body_t* args;
+};
+
+struct ast_struct {
+    ast_expr_t expr;
+    //
+    char* name;
+    char* parent;
     //
     uint8_t varc;
     ast_variable_t** vars;
@@ -91,13 +117,6 @@ struct ast_body {
 };
 
 //
-
-struct ast_con {
-    ast_expr_t expr;
-    //
-    char* name;
-    ast_body_t* args;
-};
 
 enum ast_math_oper {
     // Битовые операции
@@ -151,17 +170,18 @@ struct ast_type {
 
 ast_expr_t* ast_empty_allocate();
 ast_context_t* ast_context_allocate();
+ast_ac_t* ast_ac_allocate(ast_expr_type_t type, char* name);
+ast_struct_t* ast_struct_allocate();
 ast_function_t* ast_function_allocate();
 ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
-ast_con_t* ast_con_allocate(ast_expr_type_t type, char* name);
 ast_math_t* ast_math_allocate(ast_math_oper_t operation);
 ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text);
 
 void ast_set_next(ast_expr_t* expr, ast_expr_t* next);
 void ast_set_prev(ast_expr_t* expr, ast_expr_t* prev);
-void ast_add_annotation(ast_expr_t* expr, ast_con_t* annotation);
+void ast_add_annotation(ast_expr_t* expr, ast_ac_t* annotation);
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr);
 

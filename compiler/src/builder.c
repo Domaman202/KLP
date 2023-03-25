@@ -40,7 +40,7 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
                     last->next = NULL;
                     // Собираем аргументы
                 case AST_CALL:
-                    if (builder_build_body_cycle(((ast_con_t*) last)->args))
+                    if (builder_build_body_cycle(((ast_ac_t*) last)->args))
                         return true;
                     goto step;
                 // Собираем выражения в "телах"
