@@ -16,8 +16,9 @@ void sfier_simplify_function(ast_function_t* function) {
 ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
     if (expr) {
         switch (expr->type) {
-            case AST_ANNOTATION:
-            case AST_CALL: {
+            case AST_CALL:
+                ((ast_call_t*) expr)->address = sfier_simplify_expression(((ast_call_t*) expr)->address);
+            case AST_ANNOTATION: {
                 ast_expr_t** args = (void*) &((ast_ac_t*) expr)->args;
                 *args = sfier_simplify_expression(*args);
                 break;

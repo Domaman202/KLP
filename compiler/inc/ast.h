@@ -10,12 +10,14 @@ typedef enum ast_expr_type ast_expr_type_t;
 typedef struct ast_expr ast_expr_t;
 typedef struct ast_context ast_context_t;
 typedef struct ast_ac ast_ac_t;
+typedef struct ast_annotation ast_annotation_t;
 typedef struct ast_struct ast_struct_t;
 typedef struct ast_function ast_function_t;
 typedef struct ast_variable ast_variable_t;
 typedef struct ast_body ast_body_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
+typedef struct ast_call ast_call_t;
 typedef struct ast_pointer ast_pointer_t;
 typedef struct ast_value ast_value_t;
 typedef struct ast_type ast_type_t;
@@ -64,6 +66,13 @@ struct ast_context {
 
 // Annotation/Call
 struct ast_ac {
+    ast_expr_t expr;
+    //
+    void* argument;
+    ast_body_t* args;
+};
+
+struct ast_annotation {
     ast_expr_t expr;
     //
     char* name;
@@ -153,6 +162,13 @@ struct ast_math {
     ast_expr_t* right;
 };
 
+struct ast_call {
+    ast_expr_t expr;
+    //
+    ast_expr_t* address;
+    ast_body_t* args;
+};
+
 struct ast_value {
     ast_expr_t expr;
     //
@@ -170,7 +186,7 @@ struct ast_type {
 
 ast_expr_t* ast_empty_allocate();
 ast_context_t* ast_context_allocate();
-ast_ac_t* ast_ac_allocate(ast_expr_type_t type, char* name);
+ast_ac_t* ast_ac_allocate(ast_expr_type_t type, void* argument);
 ast_struct_t* ast_struct_allocate();
 ast_function_t* ast_function_allocate();
 ast_variable_t* ast_variable_allocate();

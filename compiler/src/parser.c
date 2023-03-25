@@ -290,6 +290,10 @@ ast_body_t* parser_parse_expr() {
         token_t* token = parser_next();
         switch (token->type) {
             case TK_OPEN_BRACKET:
+                parser_prev();
+                ast_body_add(body, (void*) parser_parse_ac(false));
+                break;
+            case TK_OPEN_FIGURAL_BRACKET:
                 ast_body_add(body, (ast_expr_t*) parser_parse_body());
                 break;
             case TK_CLOSE_BRACKET:
@@ -319,20 +323,10 @@ ast_body_t* parser_parse_expr() {
                     // Кидаем ошибку
                     throw_invalid_token(token);
                 }
-            case TK_NAMING: {
-                // Проверка на вызов функции
-                token_t* ntoken = parser_token;
-                if (ntoken->type == TK_OPEN_BRACKET) {
-                    // Парсим вызов функции
-                    parser_prev();
-                    ast_body_add(body, (void*) parser_parse_ac(false));
-                    break;
-                }
-                // Парсим наименование
-            }
             case TK_NUMBER:
             case TK_CHAR:
             case TK_STRING:
+            case TK_NAMING:
                 ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
                 break;
             case TK_GREAT:
@@ -375,7 +369,7 @@ ast_type_t* parser_parse_type() {
 
 ast_ac_t* parser_parse_ac(bool annotation) {
     // Парсим имя
-    ast_ac_t* ac = ast_ac_allocate(annotation ? AST_ANNOTATION : AST_CALL, token_text(parser_cnext(1, TK_NAMING)));
+    ast_ac_t* ac = ast_ac_allocate(annotation ? AST_ANNOTATION : AST_CALL, annotation ? token_text(parser_cnext(1, TK_NAMING)) : NULL);
     // Парсинг аргументов
     parser_cnext(1, TK_OPEN_BRACKET);
     while (1) {

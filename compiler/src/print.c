@@ -120,8 +120,10 @@ void ast_context_print(size_t indent, ast_context_t* context) {
 void ast_ac_print(size_t indent, ast_ac_t* ac) {
     ast_print_indent(indent);
     fprintf(print_stream, ac->expr.type == AST_ANNOTATION ? "[Annotation]\n" : "[Call]\n");
-    ast_print_indent(indent);
-    fprintf(print_stream, "|\t[name]\t\"%s\"\n", ac->name);
+    if (ac->expr.type == AST_ANNOTATION) {
+        ast_print_indent(indent);
+        fprintf(print_stream, "|\t[name]\t\"%s\"\n", (char*) ac->argument);
+    } else ast_expr_print(indent + 1, ac->argument);
     ast_body_print(indent + 1, ac->args, "arguments");
     ast_annotation_print(indent, (void*) ac);
 }

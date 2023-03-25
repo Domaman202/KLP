@@ -39,10 +39,17 @@ bool builder_build_body(ast_body_t* body, uint8_t priority) {
                     ast_add_annotation(last->next, (void*) last);
                     last->next = NULL;
                     // Собираем аргументы
-                case AST_CALL:
-                    if (builder_build_body_cycle(((ast_ac_t*) last)->args))
+                case AST_CALL: {
+                    ast_call_t* call = (void*) last;
+                    // Собираем адрес
+                    ast_expr_t* pp = (call->address = last->prev)->prev;
+                    ast_set_prev(last, pp);
+                    if (!pp) body->exprs = last;
+                    // Собираем аргументы
+                    if (builder_build_body_cycle(call->args))
                         return true;
                     goto step;
+                }
                 // Собираем выражения в "телах"
                 case AST_BODY:
                     if (builder_build_body_cycle((void*) last))

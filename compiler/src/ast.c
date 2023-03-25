@@ -16,10 +16,10 @@ ast_context_t* ast_context_allocate() {
     return context;
 }
 
-ast_ac_t* ast_ac_allocate(ast_expr_type_t type, char* name) {
+ast_ac_t* ast_ac_allocate(ast_expr_type_t type, void* argument) {
     ast_ac_t* ac = calloc(1, sizeof(ast_ac_t));
     ac->expr.type = type;
-    ac->name = name;
+    ac->argument = argument;
     ac->args = ast_body_allocate();
     return ac;
 }
