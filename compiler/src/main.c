@@ -1,3 +1,4 @@
+#include <ap.h>
 #include <ast.h>
 #include <lexer.h>
 #include <print.h>
@@ -37,5 +38,10 @@ int main() {
     ast_context_t* context = parser_parse(tokens);
     /// Parser Print
     printf("\nParser Result:\n");
+    ast_context_print(0, context);
+    /// Annotation Processor
+    ap_process_context(context);
+    /// Annotation Processor Print
+    printf("\nAnnotation Processor Result:\n");
     ast_context_print(0, context);
 }
