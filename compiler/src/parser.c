@@ -3,6 +3,7 @@
 #include <lexer.h>
 #include <error.h>
 #include <parser.h>
+#include <cleaner.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -237,6 +238,14 @@ ast_function_t* parser_parse_function(ast_body_t* ans) {
             parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
             // Парсим тело функции
             function->body = parser_parse_body();
+            // Находим последнее выражение функции
+            ast_expr_t* expr = function->body->exprs;
+            while (expr->next) expr = expr->next;
+            // Проверяем его тип
+            if (expr->type != AST_RETURN) { // Если это выражение не возврат из функции
+                // То добавляем возврат из функции
+                *(expr->prev ? &expr->prev->next : &function->body->exprs) = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
+            }
         }
         // Выход
         function->expr.annotations = ans;
@@ -279,7 +288,7 @@ ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global)
                 } else {
                     if (!(inbody || global)) {
                         parser_prev();
-                        variable->assign = (ast_expr_t*) parser_parse_expr(false);
+                        variable->assign = parser_parse_expr(false);
                     } else {
                         // Кидаем ошибку (переменной нельзя присвоить значение)
                         throw_invalid_token(token_assign);
@@ -299,9 +308,11 @@ ast_body_t* parser_parse_body() {
     ast_body_t* body = ast_body_allocate();
     //
     while (1) {
-        ast_body_t* expr = parser_parse_expr(true);
-        if (expr->exprs) {
-            ast_body_add(body, (ast_expr_t*) expr);
+        // Парсим выражение
+        ast_expr_t* expr = parser_parse_expr(true);
+        if (expr) { // Если выражение есть
+            // Добавляем его
+            ast_body_add(body, expr);
         }
         //
         token_t* token = parser_next();
@@ -322,7 +333,7 @@ ast_body_t* parser_parse_body() {
     }
 }
 
-ast_body_t* parser_parse_expr(bool bodyparse) {
+ast_expr_t* parser_parse_expr(bool bodyparse) {
     // Инициализация
     ast_body_t* body = ast_body_allocate();
     // Перебираем все токены
@@ -343,17 +354,17 @@ ast_body_t* parser_parse_expr(bool bodyparse) {
             case TK_SEMICOLON:
             case TK_NEWLINE:
                 parser_prev();
-                return body;
+                return cleaner_clean_expression((void*) body);
             case TK_OPEN_CUBE_BRACKET:
                 // Парсинг указателя/массива
-                ast_body_add(body, (void*) parser_parse_expr(false));
+                ast_body_add(body, parser_parse_expr(false));
                 // Добавляем операцию
                 ast_body_add(body, (void*) ast_math_allocate(MOP_DEREFERENCE));
                 // Парсинг сдвига/индекса
                 token = parser_next();
                 if (token->type == TK_COMMA) {
                     // Если есть запятая - есть сдвиг/индекс
-                    ast_body_add(body, (void*) parser_parse_expr(false));
+                    ast_body_add(body, parser_parse_expr(false));
                     parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
                 } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
                     // Если скобка закрывается - разыминовывание
@@ -365,7 +376,7 @@ ast_body_t* parser_parse_expr(bool bodyparse) {
                 }
             case TK_NAMING: {
                 if (bodyparse && util_token_cmpfree(token, "return")) { // Если это парсинг тела, то проверяем return
-                    ast_body_add(body, (void*) ast_return_allocate((void*) parser_parse_expr(false)));
+                    ast_body_add(body, (void*) ast_return_allocate(parser_parse_expr(false)));
                     break;
                 }
                 // Парсим значение
@@ -419,7 +430,7 @@ ast_ac_t* parser_parse_ac(bool annotation) {
     // Парсинг аргументов
     parser_cnext(1, TK_OPEN_BRACKET);
     while (1) {
-        ast_body_add(ac->args, (void*) parser_parse_expr(false));
+        ast_body_add(ac->args, parser_parse_expr(false));
         // Парсинг аргументов
         token_t* token = parser_cnext(2, TK_COMMA, TK_CLOSE_BRACKET);
         if (token->type == TK_COMMA) { // если есть запятая - парсим следующий аргумент

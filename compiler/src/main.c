@@ -1,10 +1,10 @@
 #include <ast.h>
 #include <lexer.h>
 #include <print.h>
-#include <sfier.h>
 #include <error.h>
 #include <parser.h>
 #include <builder.h>
+#include <cleaner.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,10 +42,5 @@ int main() {
     builder_build_context(context);
     /// Builder Print
     printf("\nBuilder Result:\n");
-    ast_context_print(0, context);
-    /// Simplifier
-    sfier_simplify_context(context);
-    /// Simplifier Print
-    printf("\nSimplifier Result:\n");
     ast_context_print(0, context);
 }
