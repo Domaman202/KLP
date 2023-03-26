@@ -63,6 +63,13 @@ ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     return math;
 }
 
+ast_return_t* ast_return_allocate(ast_expr_t* value) {
+    ast_return_t* ret = calloc(1, sizeof(ast_return_t));
+    ret->expr.type = AST_RETURN;
+    ret->value = value;
+    return ret;
+}
+
 ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text) {
     ast_value_t* value = calloc(1, sizeof(ast_value_t));
     value->expr.type = type;

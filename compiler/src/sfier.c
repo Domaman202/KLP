@@ -18,11 +18,13 @@ void sfier_simplify_function(ast_function_t* function) {
 ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
     if (expr) {
         switch (expr->type) {
-            case AST_CALL:
-                ((ast_call_t*) expr)->address = sfier_simplify_expression(((ast_call_t*) expr)->address);
+            case AST_CALL: {
+                ast_call_t* call = (void*) expr;
+                call->address = sfier_simplify_expression(call->address);
+            }
             case AST_ANNOTATION: {
-                ast_expr_t** args = (void*) &((ast_ac_t*) expr)->args;
-                *args = sfier_simplify_expression(*args);
+                ast_ac_t* ac = (void*) expr;
+                ac->args = (void*) sfier_simplify_expression((void*) ac->args);
                 break;
             }
             case AST_BODY: {
@@ -45,6 +47,11 @@ ast_expr_t* sfier_simplify_expression(ast_expr_t* expr) {
                 ast_math_t* math = (void*) expr;
                 math->left = sfier_simplify_expression(math->left);
                 math->right = sfier_simplify_expression(math->right);
+                break;
+            }
+            case AST_RETURN: {
+                ast_return_t* ret = (void*) expr;
+                ret->value = sfier_simplify_expression(ret->value);
                 break;
             }
             default:

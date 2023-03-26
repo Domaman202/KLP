@@ -23,7 +23,7 @@ ast_struct_t* parser_parse_struct(ast_body_t* ans);
 ast_function_t* parser_parse_function(ast_body_t* ans);
 ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global);
 ast_body_t* parser_parse_body();
-ast_body_t* parser_parse_expr();
+ast_body_t* parser_parse_expr(bool bodyparse);
 ast_type_t* parser_parse_type();
 
 ast_ac_t* parser_parse_ac(bool annotation);

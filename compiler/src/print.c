@@ -56,6 +56,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_MATH:
                 ast_math_print(indent, (void*) expression);
                 break;
+            case AST_RETURN:
+                ast_return_print(indent, (void*) expression);
+                break;
             case AST_NUMBER:
             case AST_CHAR:
             case AST_STRING:
@@ -250,6 +253,14 @@ void ast_math_print(size_t indent, ast_math_t* math) {
     ast_expr_print(indent + 1, math->left);
     ast_expr_print(indent + 1, math->right);
     ast_annotation_print(indent, (void*) math);
+}
+
+void ast_return_print(size_t indent, ast_return_t* ret) {
+    ast_print_indent(indent);
+    fprintf(print_stream, "[Return]\n");
+    if (ret->value) { 
+        ast_expr_print(indent, ret->value);
+    }
 }
 
 void ast_value_print(size_t indent, ast_value_t* value) {

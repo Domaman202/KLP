@@ -25,6 +25,7 @@ void ast_function_print(size_t indent, ast_function_t* function);
 void ast_variable_print(size_t indent, ast_variable_t* variable);
 void ast_body_print(size_t indent, ast_body_t* body, char* text);
 void ast_math_print(size_t indent, ast_math_t* math);
+void ast_return_print(size_t indent, ast_return_t* ret);
 void ast_value_print(size_t indent, ast_value_t* naming);
 void ast_type_print(ast_type_t* type);
 
