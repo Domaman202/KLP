@@ -81,18 +81,24 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
             ast_body_add(ans, annotation);
             continue;
         }
+        // Пропускаем бесполезные токены
+        parser_skip();
         // Парсим переменную
         void* variable = parser_parse_variable(ans, inbody, !inbody);
         if (variable) {
             context->vars = (void*) util_reallocadd((void*) context->vars, variable, ++context->varc);
             goto reset;
         }
+        // Пропускаем бесполезные токены
+        parser_skip();
         // Парсим функцию
         void* function = parser_parse_function(ans);
         if (function) {
             context->funs = (void*) util_reallocadd((void*) context->funs, function, ++context->func);
             goto reset;
         }
+        // Пропускаем бесполезные токены
+        parser_skip();
         // Парсим структуру
         if (!instruct) { // Невозможно создавать под-структуры (todo)
             void* structure = parser_parse_struct(ans);
@@ -101,6 +107,8 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
                 goto reset;
             }
         }
+        // Пропускаем бесполезные токены
+        parser_skip();
         // Парсим пространство имён
         if (!instruct) { // Невозможно создавать пространства имён в структурах
             ast_namespace_t* namespace = parser_parse_namespace(ans);
@@ -108,6 +116,8 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
                 context->nss = (void*) util_reallocadd((void*) context->nss, namespace, ++context->nsc);
             }
         }
+        // Пропускаем бесполезные токены
+        parser_skip();
         // Если это парсинг тела проверяем конец тела
         if (inbody && parser_token->type == TK_CLOSE_FIGURAL_BRACKET) {
             // Выходим
