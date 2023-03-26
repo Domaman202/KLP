@@ -5,8 +5,10 @@
 #include <stddef.h>
 
 void builder_build_context(ast_context_t* context) {
-    for (uint8_t i = 0; i < context->func; i++) {
+    for (uint8_t i = 0; i < context->func; i++)
         builder_build_function(context->funs[i]);
+    for (uint8_t i = 0; i < context->nsc; i++) {
+        builder_build_context((void*) context->nss[i]);
     }
 }
 

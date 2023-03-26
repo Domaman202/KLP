@@ -1,3 +1,5 @@
-fun add(args: foo_args_t): i32 = {
-    {summ}(a, b)
- }
+namespace dmn {
+    fun add(a: i32, b: i32): i32 = {
+        a + b
+    }
+}

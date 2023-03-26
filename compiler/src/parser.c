@@ -68,7 +68,7 @@ token_t* parser_cnext__(char* __fun, char* __file, uint16_t __line, unsigned int
     throw_invalid_token_(__fun, __file, __line, token);
 }
 
-ast_context_t* parser_parse_context(bool inbody) {
+ast_context_t* parser_parse_context(bool inbody, bool instruct) {
     ast_context_t* context = ast_context_allocate();
     ast_body_t* ans = ast_body_allocate();
     // Проходимся по токенам
@@ -94,11 +94,18 @@ ast_context_t* parser_parse_context(bool inbody) {
             goto reset;
         }
         // Парсим структуру
-        if (!inbody) { // Невозможно создавать под-структуры (todo)
+        if (!instruct) { // Невозможно создавать под-структуры (todo)
             void* structure = parser_parse_struct(ans);
             if (structure) {
                 context->structs = (void*) util_reallocadd((void*) context->structs, structure, ++context->structc);
                 goto reset;
+            }
+        }
+        // Парсим пространство имён
+        if (!instruct) { // Невозможно создавать пространства имён в структурах
+            ast_namespace_t* namespace = parser_parse_namespace(ans);
+            if (namespace) {
+                context->nss = (void*) util_reallocadd((void*) context->nss, namespace, ++context->nsc);
             }
         }
         // Если это парсинг тела проверяем конец тела
@@ -128,6 +135,26 @@ ast_ac_t* parser_parse_annotation() {
     return NULL;
 }
 
+ast_namespace_t* parser_parse_namespace(ast_body_t* ans) {
+    token_t* token = parser_next();
+    if (token->type == TK_NAMING && util_token_cmpfree(token, "namespace")) {
+        // Парсинг пространства имён
+        ast_namespace_t* namespace = ast_namespace_allocate(token_text(parser_cnext(1, TK_NAMING)));
+        // Проверяем начало пространства имён
+        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+        // Парсим тело пространства имён
+        ast_context_t* context = parser_parse_context(true, false);
+        memcpy(namespace, context, sizeof(ast_context_t));
+        namespace->ctx.expr.type = AST_NAMESPACE;
+        // Проверка на конец пространства имён
+        parser_cnext(1, TK_CLOSE_FIGURAL_BRACKET);
+        // Выход
+        namespace->ctx.expr.annotations = ans;
+        return namespace;
+    } else parser_prev();
+    return NULL;
+}
+
 ast_struct_t* parser_parse_struct(ast_body_t* ans) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING && util_token_cmpfree(token, "struct")) {
@@ -135,8 +162,9 @@ ast_struct_t* parser_parse_struct(ast_body_t* ans) {
         ast_struct_t* structure = ast_struct_allocate();
         // Сохраняем имя
         structure->name = token_text(parser_cnext(1, TK_NAMING));
-        // Сохраняем предка если таковой имеется, проверяем начало тела структуры
+        // Проверяем начало тела структуры
         token_t* token = parser_cnext(2, TK_COLON, TK_OPEN_FIGURAL_BRACKET);
+        // Сохраняем предка если таковой имеется
         if (token->type == TK_COLON) {
             // Сохраняем имя предка
             structure->parent = token_text(parser_cnext(1, TK_NAMING));
@@ -144,7 +172,7 @@ ast_struct_t* parser_parse_struct(ast_body_t* ans) {
             parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
         }
         // Парсим тело структуры
-        ast_context_t* context = parser_parse_context(true);
+        ast_context_t* context = parser_parse_context(true, true);
         structure->varc = context->varc;
         structure->vars = context->vars;
         structure->func = context->func;
@@ -398,5 +426,5 @@ ast_context_t* parser_parse(token_t* token) {
     // Инициализация
     parser_token = token;
     // Парсим контекст
-    return parser_parse_context(false);
+    return parser_parse_context(false, false);
 }

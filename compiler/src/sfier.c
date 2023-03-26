@@ -4,8 +4,10 @@
 #include <stddef.h>
 
 void sfier_simplify_context(ast_context_t* context) {
-    for (uint8_t i = 0; i < context->func; i++) {
+    for (uint8_t i = 0; i < context->func; i++)
         sfier_simplify_function(context->funs[i]);
+    for (uint8_t i = 0; i < context->nsc; i++) {
+        sfier_simplify_context((void*) context->nss[i]);
     }
 }
 
