@@ -4,18 +4,6 @@
 #include <stdio.h>
 #include <stddef.h>
 
-void builder_build_context(ast_context_t* context) {
-    for (uint8_t i = 0; i < context->func; i++)
-        builder_build_function(context->funs[i]);
-    for (uint8_t i = 0; i < context->nsc; i++) {
-        builder_build_context((void*) context->nss[i]);
-    }
-}
-
-void builder_build_function(ast_function_t* function) {
-    builder_build_body_cycle(function->body);
-}
-
 bool builder_build_body_cycle(ast_body_t* body) {
     uint32_t counter = 0;
     for (uint8_t i = 255; i; i--) {

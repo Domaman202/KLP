@@ -21,8 +21,6 @@ typedef enum builder_priority_group {
     BUILDER_PG_A /* Аннотации собираются раньше всего */
 } builder_priority_group_t;
 
-void builder_build_context(ast_context_t* context);
-void builder_build_function(ast_function_t* function);
 bool builder_build_body_cycle(ast_body_t* body);
 bool builder_build_body(ast_body_t* body, uint8_t priority);
 bool builder_build_expression(ast_body_t* body, ast_expr_t* last);

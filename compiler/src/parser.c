@@ -4,6 +4,7 @@
 #include <error.h>
 #include <parser.h>
 #include <cleaner.h>
+#include <builder.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -246,6 +247,8 @@ ast_function_t* parser_parse_function(ast_body_t* ans) {
                 // То добавляем возврат из функции
                 *(expr->prev ? &expr->prev->next : &function->body->exprs) = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
             }
+            // Собираем выражения в функции
+            builder_build_body_cycle(function->body);
         }
         // Выход
         function->expr.annotations = ans;

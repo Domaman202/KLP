@@ -38,9 +38,4 @@ int main() {
     /// Parser Print
     printf("\nParser Result:\n");
     ast_context_print(0, context);
-    /// Builder
-    builder_build_context(context);
-    /// Builder Print
-    printf("\nBuilder Result:\n");
-    ast_context_print(0, context);
 }
