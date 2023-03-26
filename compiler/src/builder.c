@@ -1,7 +1,5 @@
-#include <print.h>
 #include <builder.h>
 
-#include <stdio.h>
 #include <stddef.h>
 
 bool builder_build_body_cycle(ast_body_t* body) {
