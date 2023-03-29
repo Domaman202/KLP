@@ -240,13 +240,25 @@ ast_function_t* parser_parse_function(ast_body_t* ans) {
             parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
             // Парсим тело функции
             function->body = parser_parse_body();
-            // Находим последнее выражение функции
+            // Добавляем return при необходимости
             ast_expr_t* expr = function->body->exprs;
-            while (expr->next) expr = expr->next;
-            // Проверяем его тип
-            if (expr->type != AST_RETURN) { // Если это выражение не возврат из функции
-                // То добавляем возврат из функции
-                *(expr->prev ? &expr->prev->next : &function->body->exprs) = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
+            if (expr) { // Проверяем существует ли в функции хоть одно выражение
+                // Находим последнее выражение функции
+                while (expr->next) expr = expr->next;
+                // Проверяем его тип
+                if (expr->type != AST_RETURN) { // Если это выражение не возврат из функции
+                    // То добавляем возврат из функции
+                    if (strcmp(function->rettype->name, "void")) { // Проверяем что должна возвращать функция
+                        // Если что-то - добавляем выражение возврата и передаём в него в качестве аргумента последнее выражение
+                        *(expr->prev ? &expr->prev->next : &function->body->exprs) = (void*) ast_return_allocate(expr);
+                    } else {
+                        // Если ничего - добавляем выражение возврата в конец
+                        ast_body_add(function->body, (void*) ast_return_allocate(NULL));
+                    }
+                }
+            } else {
+                // Если в функции нет ни одного выражения добавляем return
+                function->body->exprs = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
             }
             // Собираем выражения в функции
             builder_build_body_cycle(function->body);
@@ -388,7 +400,7 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
             case TK_NUMBER:
             case TK_CHAR:
             case TK_STRING:
-                ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, token_text(token)));
+                ast_body_add(body, (void*) ast_value_allocate((ast_expr_type_t) token->type, (uintptr_t) token_text(token)));
                 break;
             case TK_GREAT:
             case VTK_RIGHT_SHIFT:

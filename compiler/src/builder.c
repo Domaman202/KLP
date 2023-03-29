@@ -78,8 +78,12 @@ bool builder_build_expression(ast_body_t* body, ast_expr_t* last) {
             return true;
         }
         // Собираем выражения возврата
-        case AST_RETURN:
-            return builder_build_expression(body, ((ast_return_t*) last)->value);
+        case AST_RETURN: {
+            ast_return_t* ret = (void*) last;
+            if (ret->value) {
+                return builder_build_expression(body, ret->value);
+            }
+        }
         default:
             break;
     }

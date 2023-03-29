@@ -6,6 +6,7 @@ FILE* print_stream;
 
 void print_init() {
     print_stream = stdout;
+    // print_stream = fopen("out.log", "w");
 }
 
 void token_print(token_t* token, bool nss) {
@@ -63,6 +64,7 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_CHAR:
             case AST_STRING:
             case AST_NAMING:
+            case AST_TMP:
                 ast_value_print(indent, (void*) expression);
                 break;
             default:
@@ -278,6 +280,9 @@ void ast_value_print(size_t indent, ast_value_t* value) {
         case AST_NAMING:
             fprintf(print_stream, "[Naming]");
             break;
+        case AST_TMP:
+            fprintf(print_stream, "[Tmp]\t%lu\n", value->value);
+            return;
         default:
             fprintf(print_stream, "[Value]\n");
             ast_print_indent(indent + 1);

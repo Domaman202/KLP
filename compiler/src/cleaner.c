@@ -30,17 +30,20 @@ ast_expr_t* cleaner_clean_expression(ast_expr_t* expr) {
             case AST_BODY: {
                 ast_body_t* body = (void*) expr;
                 ast_expr_t** last = &body->exprs;
-                while (*last) {
-                    ast_expr_t* prev = (*last)->prev;
-                    ast_expr_t* next = (*last)->next;
-                    ast_expr_t* simplified = cleaner_clean_expression(*last);
-                    ast_set_prev(simplified, prev);
-                    ast_set_next(simplified, next);
-                    *last = simplified;
-                    last = &simplified->next;
+                if (last && *last) {
+                    while (*last) {
+                        ast_expr_t* prev = (*last)->prev;
+                        ast_expr_t* next = (*last)->next;
+                        ast_expr_t* simplified = cleaner_clean_expression(*last);
+                        ast_set_prev(simplified, prev);
+                        ast_set_next(simplified, next);
+                        *last = simplified;
+                        last = &simplified->next;
+                    }
+                    if (body->exprs->next) {
+                        break;
+                    }
                 }
-                if (body->exprs->next)
-                    break;
                 return body->exprs;
             }
             case AST_MATH: {

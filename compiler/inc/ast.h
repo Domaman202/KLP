@@ -44,7 +44,9 @@ enum ast_expr_type {
     AST_NUMBER      = TK_NUMBER,    // 0x19
     AST_CHAR        = TK_CHAR,      // 0x1A
     AST_STRING      = TK_STRING,    // 0x1B
-    AST_NAMING      = TK_NAMING     // 0x1C
+    AST_NAMING      = TK_NAMING,    // 0x1C
+    
+    AST_TMP         = 0x1D,
 };
 
 
@@ -191,7 +193,10 @@ struct ast_return {
 struct ast_value {
     ast_expr_t expr;
     //
-    char* text;
+    union {
+        char* text;
+        uintptr_t value;
+    };
 };
 
 //
@@ -214,12 +219,13 @@ ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate(ast_math_oper_t operation);
 ast_return_t* ast_return_allocate(ast_expr_t* value);
-ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text);
+ast_value_t* ast_value_allocate(ast_expr_type_t type, uintptr_t text);
 
 void ast_set_next(ast_expr_t* expr, ast_expr_t* next);
 void ast_set_prev(ast_expr_t* expr, ast_expr_t* prev);
 void ast_add_annotation(ast_expr_t* expr, ast_ac_t* annotation);
 
 void ast_body_add(ast_body_t* body, ast_expr_t* expr);
+void ast_body_addback(ast_body_t* body, ast_expr_t* expr);
 
 #endif /* __AST_H__ */

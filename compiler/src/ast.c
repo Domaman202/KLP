@@ -70,10 +70,10 @@ ast_return_t* ast_return_allocate(ast_expr_t* value) {
     return ret;
 }
 
-ast_value_t* ast_value_allocate(ast_expr_type_t type, char* text) {
+ast_value_t* ast_value_allocate(ast_expr_type_t type, uintptr_t val) {
     ast_value_t* value = calloc(1, sizeof(ast_value_t));
     value->expr.type = type;
-    value->text = text;
+    value->value = val;
     return value;
 }
 
@@ -110,4 +110,10 @@ void ast_body_add(ast_body_t* body, ast_expr_t* expr) {
         body->exprs = expr;
         expr->prev = NULL;
     }
+}
+
+void ast_body_addback(ast_body_t* body, ast_expr_t* expr) {
+    expr->prev = NULL;
+    expr->next = body->exprs;
+    body->exprs = expr;
 }
