@@ -63,10 +63,9 @@ ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     return math;
 }
 
-ast_return_t* ast_return_allocate(ast_expr_t* value) {
+ast_return_t* ast_return_allocate() {
     ast_return_t* ret = calloc(1, sizeof(ast_return_t));
     ret->expr.type = AST_RETURN;
-    ret->value = value;
     return ret;
 }
 
@@ -81,6 +80,29 @@ ast_type_t* ast_type_allocate() {
     ast_type_t* type = calloc(1, sizeof(ast_type_t));
     type->expr.type = AST_TYPE;
     return type;
+}
+
+void ast_cute(ast_expr_t* prev, ast_expr_t* next, ast_body_t* body) {
+    if (prev) {
+        ast_set_next(prev, next);
+    } else {
+        body->exprs = next;
+    }
+}
+
+void ast_insert(ast_expr_t* expr, ast_expr_t* prev, ast_expr_t* next, ast_body_t* body) {
+    if (prev)
+        ast_set_next(prev, expr);
+    else {
+        body->exprs = expr;
+        expr->prev = NULL;
+    }
+
+    if (next) {
+        ast_set_prev(next, expr);
+    } else {
+        expr->next = NULL;
+    }
 }
 
 void ast_set_next(ast_expr_t* expr, ast_expr_t* next) {

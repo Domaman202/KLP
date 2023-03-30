@@ -239,29 +239,30 @@ ast_function_t* parser_parse_function(ast_body_t* ans) {
             // Проверка начала функции
             parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
             // Парсим тело функции
-            function->body = parser_parse_body();
-            // Добавляем return при необходимости
-            ast_expr_t* expr = function->body->exprs;
-            if (expr) { // Проверяем существует ли в функции хоть одно выражение
-                // Находим последнее выражение функции
-                while (expr->next) expr = expr->next;
-                // Проверяем его тип
-                if (expr->type != AST_RETURN) { // Если это выражение не возврат из функции
-                    // То добавляем возврат из функции
-                    if (strcmp(function->rettype->name, "void")) { // Проверяем что должна возвращать функция
-                        // Если что-то - добавляем выражение возврата и передаём в него в качестве аргумента последнее выражение
-                        *(expr->prev ? &expr->prev->next : &function->body->exprs) = (void*) ast_return_allocate(expr);
-                    } else {
-                        // Если ничего - добавляем выражение возврата в конец
-                        ast_body_add(function->body, (void*) ast_return_allocate(NULL));
-                    }
-                }
-            } else {
-                // Если в функции нет ни одного выражения добавляем return
-                function->body->exprs = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
-            }
+            ast_body_t* actions = parser_parse_body();
+            // // Добавляем return при необходимости // todo: А оно нам тут надо?
+            // ast_expr_t* expr = actions->exprs;
+            // if (expr) { // Проверяем существует ли в функции хоть одно выражение
+            //     // Находим последнее выражение функции
+            //     while (expr->next) expr = expr->next;
+            //     // Проверяем его тип
+            //     if (expr->type != AST_RETURN) { // Если это выражение не возврат из функции
+            //         // То добавляем возврат из функции
+            //         if (strcmp(function->rettype->name, "void")) { // Проверяем что должна возвращать функция
+            //             // Если что-то - добавляем выражение возврата и передаём в него в качестве аргумента последнее выражение
+            //             *(expr->prev ? &expr->prev->next : &actions->exprs) = (void*) ast_return_allocate(expr);
+            //         } else {
+            //             // Если ничего - добавляем выражение возврата в конец
+            //             ast_body_add(actions, (void*) ast_return_allocate(NULL));
+            //         }
+            //     }
+            // } else {
+            //     // Если в функции нет ни одного выражения добавляем return
+            //     actions->exprs = (void*) ast_return_allocate((strcmp(function->rettype->name, "void")) ? expr : NULL);
+            // }
             // Собираем выражения в функции
-            builder_build_body_cycle(function->body);
+            function->body = ast_body_allocate();
+            builder_build_body_cycle(function->body, actions);
         }
         // Выход
         function->expr.annotations = ans;
@@ -392,7 +393,13 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
                 }
             case TK_NAMING: {
                 if (bodyparse && util_token_cmpfree(token, "return")) { // Если это парсинг тела, то проверяем return
-                    ast_body_add(body, (void*) ast_return_allocate(parser_parse_expr(false)));
+                    // Парсим return 
+                    ast_return_t* ret = ast_return_allocate();
+                    // Парсим значение
+                    ret->value = parser_parse_expr(false);
+                    // Добавляем return
+                    ast_body_add(body, (void*) ret);
+                    // Выход
                     break;
                 }
                 // Парсим значение

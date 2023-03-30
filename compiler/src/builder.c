@@ -1,94 +1,171 @@
+#include <error.h>
+#include <print.h>
 #include <builder.h>
 
+#include <stdio.h>
 #include <stddef.h>
 
-bool builder_build_body_cycle(ast_body_t* body) {
-    uint32_t counter = 0;
-    for (uint8_t i = 255; i; i--) {
-        while (builder_build_body(body, i)) {
-            counter++;
+uint32_t builder_tmp;
+
+ast_expr_t* builder_build_body_cycle(ast_body_t* body, ast_body_t* actions) {
+    // body->exprs = actions->exprs;
+    ///
+    ast_expr_t* result = NULL;
+    for (uint8_t i = BUILDER_PG_A; i > BUILDER_PG_NB; i--) {
+        ast_expr_t* tmp = builder_build_body(body, actions, i);
+        if (tmp) {
+            result = tmp;
         }
     }
-    return counter > 0;
+    //
+    return result;
 }
 
-bool builder_build_body(ast_body_t* body, uint8_t priority) {
+ast_expr_t* builder_build_body(ast_body_t* body, ast_body_t* actions, uint8_t priority) {
+    ast_expr_t* result = NULL;
     // Собираем выражения
-    ast_expr_t* last = body->exprs;
+    ast_expr_t* last = actions->exprs;
     while (last != NULL) {
         // Сравниваем приоритет
-        if (builder_priority(last) == priority) {
-            // Собираем выражение
-            if (builder_build_expression(body, last)) { // Если выражение успешно собрано
-                // Выходим
-                return true;
+        if (builder_priority(last) == priority) { // Если приоритет совпал
+            // // DEBUG
+            // printf("\nDO:\n");
+            // ast_expr_print(0, actions);
+            // Собираем выражения
+            ast_expr_t* tmp = builder_build_expression(body, actions, last, false);
+            if (tmp) {
+                result = tmp;
             }
+            // // DEBUG
+            // printf("\nPOSLE:\n");
+            // ast_expr_print(0, actions);
         }
         // Перебираем выражения
         last = last->next;
     }
     // Выход
-    return false;
+    return result;
 }
 
-bool builder_build_expression(ast_body_t* body, ast_expr_t* last) {
+ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_expr_t* last, bool val_parse) {
     switch (last->type) {
-        // Присваиваем аннотацию
-        case AST_ANNOTATION:
-            // Выпиливаем аннотацию из списка выражений
-            if (!last->prev) body->exprs = last->next;
-            ast_set_prev(last->next, last->prev);
-            // Присваиваем аннотацию переднему выражению
-            ast_add_annotation(last->next, (void*) last);
-            last->next = NULL;
-            // Собираем аргументы
-        case AST_CALL: {
-            ast_call_t* call = (void*) last;
-            // Собираем адрес
-            ast_expr_t* pp = (call->address = last->prev)->prev;
-            ast_set_prev(last, pp);
-            if (!pp) body->exprs = last;
-            // Собираем аргументы
-            if (builder_build_body_cycle(call->args))
-                return true;
-            break;
-        }
+        // // Присваиваем аннотацию
+        // case AST_ANNOTATION:
+        //     // Выпиливаем аннотацию из списка выражений
+        //     if (!last->prev) actions->exprs = last->next;
+        //     ast_set_prev(last->next, last->prev);
+        //     // Присваиваем аннотацию переднему выражению
+        //     ast_add_annotation(last->next, (void*) last);
+        //     last->next = NULL;
+        //     // Собираем аргументы
+        // case AST_CALL: {
+        //     ast_call_t* call = (void*) last;
+        //     // Собираем адрес
+        //     ast_expr_t* pp = (call->address = last->prev)->prev;
+        //     ast_set_prev(last, pp);
+        //     if (!pp) actions->exprs = last;
+        //     // Собираем аргументы
+        //     if (builder_build_body_cycle(body, call->args))
+        //         return true;
+        //     break;
+        // }
         // Собираем выражения в "телах"
-        case AST_BODY:
-            if (builder_build_body_cycle((void*) last))
-                return true;
-            break;
+        case AST_BODY: {
+            // Собираем выражение
+            ast_expr_t* result = builder_build_body_cycle(body, (void*) last);
+            // Если мы парсим значение, а не просто тело
+            // if (val_parse) { // Если мы возвращаем значение
+                // Сохраняем значение последнего действия в теле
+                result = builder_save_tmp(body, result);
+                // Заменяем выражение
+                ast_insert(result, last->prev, last->next, actions);
+            // } else {
+            //     // Вырезаем выражение
+            //     ast_cute(last->prev, last->next, actions);
+            // }
+            // Выход
+            return result;
+        }
         // Собираем математические выражения
         case AST_MATH: {
-            ast_math_t* math = (ast_math_t*) last;
-            //
-            if (math->left || math->right) { // Проверяем собрано ли выражение
-                // Перебираем выражения дальше
-                break; 
+            // Собираем выражение
+            ast_math_t* math = (void*) last;
+            ast_math_t* nmath = ast_math_allocate(math->operation);
+            if (math->operation == MOP_NOT) { // Проверка навыражение с одним аргументом
+                // todo: Собираем выражение с одним аргументом
+                throw_invalid_ast((void*) math);
+            } else {
+                // Собираем аргументы
+                nmath->left = builder_get_argument(body, actions, last->prev);
+                nmath->right = builder_get_argument(body, actions, last->next);
+                // Создаём tmp
+                ast_expr_t* tmp = builder_save_tmp(body, (void*) nmath);
+                // void* tmp = nmath;
+                // Заменяем выражение и аргументы
+                ast_insert(tmp, last->prev->prev, last->next->next, actions);
+                // Выход
+                return tmp;
             }
-            // Собираем выражение (левое)
-            if (math->operation != MOP_NOT) {
-                ast_expr_t* pp = (math->left = last->prev)->prev;
-                ast_set_prev(last, pp);
-                if (!pp) body->exprs = last;
-            }
-            // Собираем выражение (правое)
-            ast_set_next(last, (math->right = last->next)->next);
-            // Успешный выход
-            return true;
         }
         // Собираем выражения возврата
         case AST_RETURN: {
-            ast_return_t* ret = (void*) last;
-            if (ret->value) {
-                return builder_build_expression(body, ret->value);
+            // Собираем выражение
+            ast_expr_t* value = builder_build_expression(body, actions, ((ast_return_t*) last)->value, true);
+            if (val_parse) { 
+                // Возвращаем наше значение
+                ast_insert(value, last->prev, last->next, actions);
+                // Выход
+                return value;
+            } else {
+                // Вырезаем выражение и значение
+                ast_cute(last->prev, last->next, actions);
+                // Добавляем выражение в тело
+                ast_return_t* ret = ast_return_allocate();
+                ret->value = value;
+                ast_body_add(body, (void*) ret);
+                // Выход
+                return NULL; 
             }
         }
+        
         default:
-            break;
+            // return NULL;
+            throw_invalid_ast(last);
     }
-    // Перебираем выражения дальше
-    return false;
+}
+
+ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr_t* last) {
+    switch (last->type) {
+        // Значения
+        case AST_NUMBER:
+        case AST_CHAR:
+        case AST_STRING:
+        case AST_TMP:
+            return last;
+        // Собираем наименование
+        case AST_NAMING: {
+            // Вырезаем выражение
+            ast_cute(last->prev, last->next, actions);
+            // Сохраняем в tmp
+            void* value = ast_value_allocate(AST_NAMING, ((ast_value_t*) last)->value);
+            ast_expr_t* tmp = builder_save_tmp(body, value);
+            // Заменяем выражение
+            ast_insert(tmp, last->prev, last->next, actions);
+            //
+            return tmp;
+        }
+        default:
+            throw_invalid_ast(last);
+    }
+}
+
+ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression) {
+    ast_expr_t* ltmp = (void*) ast_value_allocate(AST_TMP, builder_tmp++);
+    ast_math_t* lset = ast_math_allocate(MOP_ASSIGN);
+    lset->left = ltmp;
+    lset->right = expression;
+    ast_body_add(body, (void*) lset);
+    return ltmp;
 }
 
 uint8_t builder_priority(ast_expr_t* expression) {
@@ -98,40 +175,44 @@ uint8_t builder_priority(ast_expr_t* expression) {
         case AST_STRING:
         case AST_NAMING:
             return BUILDER_PG_NB;
+        // case AST_RETURN:
+        //     return BUILDER_PG_L;
         case AST_MATH: {
             ast_math_t* math = (void*) expression;
             switch (math->operation) {
                 case MOP_ASSIGN:
-                    return BUILDER_PG_L;
-                case MOP_OR:
                     return BUILDER_PG_12;
-                case MOP_XOR:
+                case MOP_OR:
                     return BUILDER_PG_11;
-                case MOP_AND:
+                case MOP_XOR:
                     return BUILDER_PG_10;
+                case MOP_AND:
+                    return BUILDER_PG_9;
                 case MOP_EQ:
                 case MOP_NEQ:
-                    return BUILDER_PG_9;
+                    return BUILDER_PG_8;
                 case MOP_GREAT:
                 case MOP_GOE:
                 case MOP_LESS:
                 case MOP_LOE:
-                    return BUILDER_PG_8;
+                    return BUILDER_PG_7;
                 case MOP_RIGHT_SHIFT:
                 case MOP_LEFT_SHIFT:
-                    return BUILDER_PG_7;
+                    return BUILDER_PG_6;
                 case MOP_ADD:
                 case MOP_SUB:
-                    return BUILDER_PG_6;
+                    return BUILDER_PG_5;
                 case MOP_MUL:
                 case MOP_DIV:
-                    return BUILDER_PG_5;
+                    return BUILDER_PG_4;
                 case MOP_NOT:
                     return BUILDER_PG_3;
                 case MOP_DEREFERENCE:
-                    return BUILDER_PG_H;
+                    return BUILDER_PG_2;
             }
         }
+        // case AST_NAMING:
+        //     return BUILDER_PG_1;
         case AST_BODY:
         case AST_CALL:
         case AST_RETURN:

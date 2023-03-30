@@ -6,7 +6,6 @@
 #include <parser.h>
 #include <builder.h>
 #include <cleaner.h>
-#include <unroller.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,14 +39,9 @@ int main() {
     /// Parser Print
     printf("\nParser Result:\n");
     ast_context_print(0, context);
-    /// Annotation Processor
-    ap_process_context(context);
-    /// Annotation Processor Print
-    printf("\nAnnotation Processor Result:\n");
-    ast_context_print(0, context);
-    /// Unroller
-    unroller_unroll_context(context);
-    /// Unroller Print
-    printf("\nUnroller Result:\n");
-    ast_context_print(0, context);
+    // /// Annotation Processor
+    // ap_process_context(context);
+    // /// Annotation Processor Print
+    // printf("\nAnnotation Processor Result:\n");
+    // ast_context_print(0, context);
 }
