@@ -63,6 +63,12 @@ ast_math_t* ast_math_allocate(ast_math_oper_t operation) {
     return math;
 }
 
+ast_if_t* ast_if_allocate() {
+    ast_if_t* if_ = calloc(1, sizeof(ast_if_t));
+    if_->expr.type = AST_IF;
+    return if_;
+}
+
 ast_return_t* ast_return_allocate() {
     ast_return_t* ret = calloc(1, sizeof(ast_return_t));
     ret->expr.type = AST_RETURN;

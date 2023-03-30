@@ -57,6 +57,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_MATH:
                 ast_math_print(indent, (void*) expression);
                 break;
+            case AST_IF:
+                ast_if_print(indent, (void*) expression);
+                break;
             case AST_RETURN:
                 ast_return_print(indent, (void*) expression);
                 break;
@@ -255,6 +258,20 @@ void ast_math_print(size_t indent, ast_math_t* math) {
     ast_expr_print(indent + 1, math->left);
     ast_expr_print(indent + 1, math->right);
     ast_annotation_print(indent, (void*) math);
+}
+
+void ast_if_print(size_t indent, ast_if_t* if_) {
+    ast_print_indent(indent);
+    fprintf(print_stream, "[If]\n");
+    ast_print_indent(indent + 1);
+    fprintf(print_stream, "[Condition]\n");
+    ast_expr_print(indent + 1, if_->condition);
+    ast_print_indent(indent + 1);
+    fprintf(print_stream, "[Action]\n");
+    ast_expr_print(indent + 1, if_->action);
+    ast_print_indent(indent + 1);
+    fprintf(print_stream, "[Else]\n");
+    ast_expr_print(indent + 1, if_->else_action);
 }
 
 void ast_return_print(size_t indent, ast_return_t* ret) {

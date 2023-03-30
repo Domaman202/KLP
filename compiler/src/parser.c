@@ -392,15 +392,42 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
                     throw_invalid_token(token);
                 }
             case TK_NAMING: {
-                if (bodyparse && util_token_cmpfree(token, "return")) { // Если это парсинг тела, то проверяем return
-                    // Парсим return 
-                    ast_return_t* ret = ast_return_allocate();
-                    // Парсим значение
-                    ret->value = parser_parse_expr(false);
-                    // Добавляем return
-                    ast_body_add(body, (void*) ret);
-                    // Выход
-                    break;
+                if (bodyparse) { // Если это парсинг тела, то проверяем дальше
+                    if (util_token_cmpfree(token, "if")) {
+                        // Парсим if
+                        ast_if_t* if_ = ast_if_allocate();
+                        // Парсим условие
+                        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                        if_->condition = (void*) parser_parse_body();
+                        // Проверяем then
+                        token = parser_cnext(1, TK_NAMING);
+                        if (!util_token_cmpfree(token, "then")) {
+                            throw_invalid_token(token);
+                        }
+                        // Парсим действие
+                        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                        if_->action = (void*) parser_parse_body();
+                        // Проверяем else
+                        token = parser_next();
+                        if (token->type == AST_NAMING && util_token_cmpfree(token, "else")) {
+                            // Если есть else, парсим действие
+                            parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                            if_->else_action = (void*) parser_parse_body();
+                        } else parser_prev();
+                        // Добавляем if
+                        ast_body_add(body, (void*) if_);
+                        // Выход
+                        break;
+                    } else if (util_token_cmpfree(token, "return")) {
+                        // Парсим return 
+                        ast_return_t* ret = ast_return_allocate();
+                        // Парсим значение
+                        ret->value = parser_parse_expr(false);
+                        // Добавляем return
+                        ast_body_add(body, (void*) ret);
+                        // Выход
+                        break;
+                    } 
                 }
                 // Парсим значение
             }

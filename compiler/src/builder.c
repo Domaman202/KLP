@@ -28,17 +28,17 @@ ast_expr_t* builder_build_body(ast_body_t* body, ast_body_t* actions, uint8_t pr
     while (last != NULL) {
         // Сравниваем приоритет
         if (builder_priority(last) == priority) { // Если приоритет совпал
-            // // DEBUG
+            // DEBUG
             // printf("\nDO:\n");
-            // ast_expr_print(0, actions);
+            // ast_expr_print(0, (void*) actions);
             // Собираем выражения
             ast_expr_t* tmp = builder_build_expression(body, actions, last, false);
             if (tmp) {
                 result = tmp;
             }
-            // // DEBUG
+            // DEBUG
             // printf("\nPOSLE:\n");
-            // ast_expr_print(0, actions);
+            // ast_expr_print(0, (void*) actions);
         }
         // Перебираем выражения
         last = last->next;
@@ -107,6 +107,30 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
                 return tmp;
             }
         }
+        // Собираем условие
+        case AST_IF: {
+            // Собираем выражение
+            ast_if_t* if_ = (void*) last;
+            ast_if_t* nif = ast_if_allocate();
+            // Вырезаем выражение
+            ast_cute(last->prev, last->next, actions);
+            // Собираем условие
+            nif->condition = builder_build_expression(body, actions, if_->condition, true);
+            // Собираем действие
+            void* act = ast_body_allocate();
+            builder_build_expression(act, actions, if_->action, false);
+            nif->action = act;
+            // Собираем "иначе"
+            if (if_->else_action) {
+                void* eact = ast_body_allocate();
+                builder_build_expression(eact, actions, if_->else_action, false);
+                nif->else_action = eact;
+            }
+            // Добавляем выражение в тело
+            ast_body_add(body, (void*) nif);
+            // Выход
+            return NULL;
+        }
         // Собираем выражения возврата
         case AST_RETURN: {
             // Собираем выражение
@@ -160,6 +184,8 @@ ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr
 }
 
 ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression) {
+    if (expression->type == AST_TMP)
+        return expression;
     ast_expr_t* ltmp = (void*) ast_value_allocate(AST_TMP, builder_tmp++);
     ast_math_t* lset = ast_math_allocate(MOP_ASSIGN);
     lset->left = ltmp;
@@ -175,44 +201,42 @@ uint8_t builder_priority(ast_expr_t* expression) {
         case AST_STRING:
         case AST_NAMING:
             return BUILDER_PG_NB;
-        // case AST_RETURN:
-        //     return BUILDER_PG_L;
+        case AST_IF:
+            return BUILDER_PG_10;
         case AST_MATH: {
             ast_math_t* math = (void*) expression;
             switch (math->operation) {
                 case MOP_ASSIGN:
-                    return BUILDER_PG_12;
-                case MOP_OR:
                     return BUILDER_PG_11;
-                case MOP_XOR:
-                    return BUILDER_PG_10;
-                case MOP_AND:
+                case MOP_OR:
                     return BUILDER_PG_9;
+                case MOP_XOR:
+                    return BUILDER_PG_8;
+                case MOP_AND:
+                    return BUILDER_PG_7;
                 case MOP_EQ:
                 case MOP_NEQ:
-                    return BUILDER_PG_8;
+                    return BUILDER_PG_6;
                 case MOP_GREAT:
                 case MOP_GOE:
                 case MOP_LESS:
                 case MOP_LOE:
-                    return BUILDER_PG_7;
+                    return BUILDER_PG_5;
                 case MOP_RIGHT_SHIFT:
                 case MOP_LEFT_SHIFT:
-                    return BUILDER_PG_6;
+                    return BUILDER_PG_4;
                 case MOP_ADD:
                 case MOP_SUB:
-                    return BUILDER_PG_5;
+                    return BUILDER_PG_3;
                 case MOP_MUL:
                 case MOP_DIV:
-                    return BUILDER_PG_4;
-                case MOP_NOT:
-                    return BUILDER_PG_3;
-                case MOP_DEREFERENCE:
                     return BUILDER_PG_2;
+                case MOP_NOT:
+                    return BUILDER_PG_1;
+                case MOP_DEREFERENCE:
+                    return BUILDER_PG_0;
             }
         }
-        // case AST_NAMING:
-        //     return BUILDER_PG_1;
         case AST_BODY:
         case AST_CALL:
         case AST_RETURN:

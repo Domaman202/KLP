@@ -18,6 +18,7 @@ typedef struct ast_variable ast_variable_t;
 typedef struct ast_body ast_body_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
+typedef struct ast_if ast_if_t;
 typedef struct ast_call ast_call_t;
 typedef struct ast_return ast_return_t;
 typedef struct ast_pointer ast_pointer_t;
@@ -38,8 +39,9 @@ enum ast_expr_type {
 
     AST_BODY        = 0x8,
     AST_MATH        = 0x9,
-    AST_CALL        = 0xA,
-    AST_RETURN      = 0xB,
+    AST_IF          = 0xA,
+    AST_CALL        = 0xB,
+    AST_RETURN      = 0xC,
     
     AST_NUMBER      = TK_NUMBER,    // 0x19
     AST_CHAR        = TK_CHAR,      // 0x1A
@@ -177,6 +179,14 @@ struct ast_math {
     ast_expr_t* right;
 };
 
+struct ast_if {
+    ast_expr_t expr;
+    //
+    ast_expr_t* condition;
+    ast_expr_t* action;
+    ast_expr_t* else_action;
+};
+
 struct ast_call {
     ast_expr_t expr;
     //
@@ -218,6 +228,7 @@ ast_variable_t* ast_variable_allocate();
 ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate(ast_math_oper_t operation);
+ast_if_t* ast_if_allocate();
 ast_return_t* ast_return_allocate();
 ast_value_t* ast_value_allocate(ast_expr_type_t type, uintptr_t text);
 
