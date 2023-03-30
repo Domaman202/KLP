@@ -16,10 +16,11 @@ token_t* parser_next();
 token_t* parser_cnext__(char* __fun, char* __file, uint16_t __line, unsigned int argc, ...);
 
 ast_context_t* parser_parse_context(bool inbody, bool instruct);
-ast_ac_t* parser_parse_annotation();
-ast_namespace_t* parser_parse_namespace(ast_body_t* ans);
-ast_struct_t* parser_parse_struct(ast_body_t* ans);
-ast_function_t* parser_parse_function(ast_body_t* ans);
+ast_ac_t* parser_tryparse_annotation();
+ast_namespace_t* parser_tryparse_namespace(ast_body_t* ans);
+ast_struct_t* parser_tryparse_struct(ast_body_t* ans);
+ast_function_t* parser_tryparse_function(ast_body_t* ans);
+ast_variable_t* parser_tryparse_variable(ast_body_t* ans, bool inbody, bool global);
 ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global);
 ast_body_t* parser_parse_body();
 ast_expr_t* parser_parse_expr(bool bodyparse);

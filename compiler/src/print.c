@@ -60,6 +60,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_IF:
                 ast_if_print(indent, (void*) expression);
                 break;
+            case AST_WHILE:
+                ast_while_print(indent, (void*) expression);
+                break;
             case AST_RETURN:
                 ast_return_print(indent, (void*) expression);
                 break;
@@ -272,6 +275,17 @@ void ast_if_print(size_t indent, ast_if_t* if_) {
     ast_print_indent(indent + 1);
     fprintf(print_stream, "[Else]\n");
     ast_expr_print(indent + 1, if_->else_action);
+}
+
+void ast_while_print(size_t indent, ast_while_t* while_) {
+    ast_print_indent(indent);
+    fprintf(print_stream, "[While]\n");
+    ast_print_indent(indent + 1);
+    fprintf(print_stream, "[Condition]\n");
+    ast_expr_print(indent + 1, while_->condition);
+    ast_print_indent(indent + 1);
+    fprintf(print_stream, "[Action]\n");
+    ast_expr_print(indent + 1, while_->action);
 }
 
 void ast_return_print(size_t indent, ast_return_t* ret) {

@@ -29,16 +29,16 @@ ast_expr_t* builder_build_body(ast_body_t* body, ast_body_t* actions, uint8_t pr
         // Сравниваем приоритет
         if (builder_priority(last) == priority) { // Если приоритет совпал
             // DEBUG
-            // printf("\nDO:\n");
-            // ast_expr_print(0, (void*) actions);
+            printf("\nDO:\n");
+            ast_expr_print(0, (void*) actions);
             // Собираем выражения
             ast_expr_t* tmp = builder_build_expression(body, actions, last, false);
             if (tmp) {
                 result = tmp;
             }
             // DEBUG
-            // printf("\nPOSLE:\n");
-            // ast_expr_print(0, (void*) actions);
+            printf("\nPOSLE:\n");
+            ast_expr_print(0, (void*) actions);
         }
         // Перебираем выражения
         last = last->next;
@@ -76,7 +76,7 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
             // Если мы парсим значение, а не просто тело
             // if (val_parse) { // Если мы возвращаем значение
                 // Сохраняем значение последнего действия в теле
-                result = builder_save_tmp(body, result);
+                result = builder_save_tmp(body, result, MOP_ASSIGN);
                 // Заменяем выражение
                 ast_insert(result, last->prev, last->next, actions);
             // } else {
@@ -96,10 +96,14 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
                 throw_invalid_ast((void*) math);
             } else {
                 // Собираем аргументы
-                nmath->left = builder_get_argument(body, actions, last->prev);
-                nmath->right = builder_get_argument(body, actions, last->next);
+                // Собираем левый аргумент
+                if (math->operation == MOP_ASSIGN)
+                    nmath->left = last->prev;
+                else nmath->left = builder_get_argument(body, actions, last->prev, math->operation == MOP_DEREFERENCE_SET || math->operation == MOP_DEREFERENCE_GET);
+                // Собираем правый аргумент
+                nmath->right = builder_get_argument(body, actions, last->next, false);
                 // Создаём tmp
-                ast_expr_t* tmp = builder_save_tmp(body, (void*) nmath);
+                ast_expr_t* tmp = builder_save_tmp(body, (void*) nmath, MOP_ASSIGN);
                 // void* tmp = nmath;
                 // Заменяем выражение и аргументы
                 ast_insert(tmp, last->prev->prev, last->next->next, actions);
@@ -128,6 +132,26 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
             }
             // Добавляем выражение в тело
             ast_body_add(body, (void*) nif);
+            // Выход
+            return NULL; // todo: i = if {i > 5} then {i} else {5}
+        }
+        // Собираем цикл
+        case AST_WHILE: {
+            // Собираем выражение
+            ast_while_t* while_ = (void*) last;
+            ast_while_t* nwhile = ast_while_allocate();
+            // Вырезаем выражение
+            ast_cute(last->prev, last->next, actions);
+            // Собираем условие
+            void* condition = ast_body_allocate();
+            builder_build_expression(condition, actions, while_->condition, false);
+            nwhile->condition = condition;
+            // Собираем действие
+            void* act = ast_body_allocate();
+            builder_build_expression(act, actions, while_->action, false);
+            nwhile->action = act;
+            // Добавляем выражение в тело
+            ast_body_add(body, (void*) nwhile);
             // Выход
             return NULL;
         }
@@ -158,9 +182,10 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
     }
 }
 
-ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr_t* last) {
+ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr_t* last, bool dereference) {
     switch (last->type) {
         // Значения
+        case AST_EMPTY:
         case AST_NUMBER:
         case AST_CHAR:
         case AST_STRING:
@@ -168,26 +193,32 @@ ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr
             return last;
         // Собираем наименование
         case AST_NAMING: {
-            // Вырезаем выражение
-            ast_cute(last->prev, last->next, actions);
-            // Сохраняем в tmp
-            void* value = ast_value_allocate(AST_NAMING, ((ast_value_t*) last)->value);
-            ast_expr_t* tmp = builder_save_tmp(body, value);
-            // Заменяем выражение
-            ast_insert(tmp, last->prev, last->next, actions);
-            //
-            return tmp;
+            // Проверка на получение адреса для разыменовывания 
+            if (dereference) {
+                // Если это получение адреса для разыменовывания
+                return last;
+            } else {
+                // Вырезаем выражение
+                ast_cute(last->prev, last->next, actions);
+                // Сохраняем в tmp
+                void* value = ast_value_allocate(AST_NAMING, ((ast_value_t*) last)->value);
+                ast_expr_t* tmp = builder_save_tmp(body, value, MOP_REFERENCE);
+                // Заменяем выражение
+                ast_insert(tmp, last->prev, last->next, actions);
+                // Выход
+                return tmp;
+            }
         }
         default:
             throw_invalid_ast(last);
     }
 }
 
-ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression) {
+ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression, ast_math_oper_t operation) {
     if (expression->type == AST_TMP)
         return expression;
     ast_expr_t* ltmp = (void*) ast_value_allocate(AST_TMP, builder_tmp++);
-    ast_math_t* lset = ast_math_allocate(MOP_ASSIGN);
+    ast_math_t* lset = ast_math_allocate(operation);
     lset->left = ltmp;
     lset->right = expression;
     ast_body_add(body, (void*) lset);
@@ -196,44 +227,49 @@ ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression) {
 
 uint8_t builder_priority(ast_expr_t* expression) {
     switch (expression->type) {
+        case AST_EMPTY:
         case AST_NUMBER:
         case AST_CHAR:
         case AST_STRING:
         case AST_NAMING:
             return BUILDER_PG_NB;
         case AST_IF:
+        case AST_WHILE:
             return BUILDER_PG_10;
         case AST_MATH: {
             ast_math_t* math = (void*) expression;
             switch (math->operation) {
+                case MOP_REFERENCE:
+                case MOP_DEREFERENCE_GET:
+                    return BUILDER_PG_12;
                 case MOP_ASSIGN:
                     return BUILDER_PG_11;
+                case MOP_DEREFERENCE_SET:
+                    return BUILDER_PG_10;
                 case MOP_OR:
-                    return BUILDER_PG_9;
-                case MOP_XOR:
                     return BUILDER_PG_8;
-                case MOP_AND:
+                case MOP_XOR:
                     return BUILDER_PG_7;
+                case MOP_AND:
+                    return BUILDER_PG_6;
                 case MOP_EQ:
                 case MOP_NEQ:
-                    return BUILDER_PG_6;
+                    return BUILDER_PG_5;
                 case MOP_GREAT:
                 case MOP_GOE:
                 case MOP_LESS:
                 case MOP_LOE:
-                    return BUILDER_PG_5;
+                    return BUILDER_PG_4;
                 case MOP_RIGHT_SHIFT:
                 case MOP_LEFT_SHIFT:
-                    return BUILDER_PG_4;
+                    return BUILDER_PG_3;
                 case MOP_ADD:
                 case MOP_SUB:
-                    return BUILDER_PG_3;
+                    return BUILDER_PG_2;
                 case MOP_MUL:
                 case MOP_DIV:
-                    return BUILDER_PG_2;
-                case MOP_NOT:
                     return BUILDER_PG_1;
-                case MOP_DEREFERENCE:
+                case MOP_NOT:
                     return BUILDER_PG_0;
             }
         }

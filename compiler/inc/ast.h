@@ -19,6 +19,7 @@ typedef struct ast_body ast_body_t;
 typedef enum ast_math_oper ast_math_oper_t;
 typedef struct ast_math ast_math_t;
 typedef struct ast_if ast_if_t;
+typedef struct ast_while ast_while_t;
 typedef struct ast_call ast_call_t;
 typedef struct ast_return ast_return_t;
 typedef struct ast_pointer ast_pointer_t;
@@ -40,8 +41,9 @@ enum ast_expr_type {
     AST_BODY        = 0x8,
     AST_MATH        = 0x9,
     AST_IF          = 0xA,
-    AST_CALL        = 0xB,
-    AST_RETURN      = 0xC,
+    AST_WHILE       = 0xB,
+    AST_CALL        = 0xC,
+    AST_RETURN      = 0xD,
     
     AST_NUMBER      = TK_NUMBER,    // 0x19
     AST_CHAR        = TK_CHAR,      // 0x1A
@@ -146,28 +148,32 @@ struct ast_body {
 
 enum ast_math_oper {
     // Битовые операции
-    MOP_NOT         = TK_EXCLAMINATION,
-    MOP_AND         = TK_AMPERSAND,
-    MOP_OR          = TK_PIPE,
-    MOP_XOR         = TK_CIRCUMFLEX,
-    MOP_RIGHT_SHIFT = VTK_RIGHT_SHIFT,
-    MOP_LEFT_SHIFT  = VTK_LEFT_SHIFT,
+    MOP_NOT         = TK_EXCLAMINATION, // 0x12
+    MOP_AND         = TK_AMPERSAND,     // 0x8
+    MOP_OR          = TK_PIPE,          // 0x9
+    MOP_XOR         = TK_CIRCUMFLEX,    // 0xA
+    // Сдвиг
+    MOP_RIGHT_SHIFT = VTK_RIGHT_SHIFT,  // 0x20
+    MOP_LEFT_SHIFT  = VTK_LEFT_SHIFT,   // 0x21
     // Математические операции
-    MOP_ADD         = TK_PLUS,
-    MOP_SUB         = TK_MINUS,
-    MOP_MUL         = TK_STAR,
-    MOP_DIV         = TK_SLASH,
+    MOP_ADD         = TK_PLUS,  // 0xC
+    MOP_SUB         = TK_MINUS, // 0xD
+    MOP_MUL         = TK_STAR,  // 0xE
+    MOP_DIV         = TK_SLASH, // 0xF
     // Сравнение
-    MOP_EQ          = VTK_EQ,
-    MOP_NEQ         = VTK_NEQ,
-    MOP_GREAT       = TK_GREAT,
-    MOP_GOE         = VTK_GOE,
-    MOP_LESS        = TK_LESS,
-    MOP_LOE         = VTK_LOE,
-    // Разыминовывание
-    MOP_DEREFERENCE = TK_OPEN_CUBE_BRACKET,
+    MOP_EQ          = VTK_EQ,   // 0x22
+    MOP_NEQ         = VTK_NEQ,  // 0x23
+    MOP_GREAT       = TK_GREAT, // 0x6
+    MOP_GOE         = VTK_GOE,  // 0x24
+    MOP_LESS        = TK_LESS,  // 0x7
+    MOP_LOE         = VTK_LOE,  // 0x25
     // Присваивание
-    MOP_ASSIGN      = TK_ASSIGN,
+    MOP_ASSIGN      = TK_ASSIGN,// 0x18
+    // Ссылка
+    MOP_REFERENCE   = TK_SHARP, // 0x16
+    // Разыминовывание
+    MOP_DEREFERENCE_SET = TK_OPEN_CUBE_BRACKET,     // 0x2
+    MOP_DEREFERENCE_GET = TK_CLOSE_CUBE_BRACKET,    // 0x3
 };
 
 struct ast_math {
@@ -185,6 +191,13 @@ struct ast_if {
     ast_expr_t* condition;
     ast_expr_t* action;
     ast_expr_t* else_action;
+};
+
+struct ast_while {
+    ast_expr_t expr;
+    //
+    ast_expr_t* condition;
+    ast_expr_t* action;
 };
 
 struct ast_call {
@@ -229,6 +242,7 @@ ast_type_t* ast_type_allocate();
 ast_body_t* ast_body_allocate();
 ast_math_t* ast_math_allocate(ast_math_oper_t operation);
 ast_if_t* ast_if_allocate();
+ast_while_t* ast_while_allocate();
 ast_return_t* ast_return_allocate();
 ast_value_t* ast_value_allocate(ast_expr_type_t type, uintptr_t text);
 

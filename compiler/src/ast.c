@@ -69,6 +69,12 @@ ast_if_t* ast_if_allocate() {
     return if_;
 }
 
+ast_while_t* ast_while_allocate() {
+    ast_while_t* while_ = calloc(1, sizeof(ast_while_t));
+    while_->expr.type = AST_WHILE;
+    return while_;
+}
+
 ast_return_t* ast_return_allocate() {
     ast_return_t* ret = calloc(1, sizeof(ast_return_t));
     ret->expr.type = AST_RETURN;

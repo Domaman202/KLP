@@ -31,8 +31,8 @@ ast_expr_t* builder_build_body_cycle(ast_body_t* body, ast_body_t* actions);
 ast_expr_t* builder_build_body(ast_body_t* body, ast_body_t* actions, uint8_t priority);
 ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_expr_t* last, bool val_parse);
 
-ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr_t* last);
-ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression);
+ast_expr_t* builder_get_argument(ast_body_t* body, ast_body_t* actions, ast_expr_t* last, bool dereference);
+ast_expr_t* builder_save_tmp(ast_body_t* body, ast_expr_t* expression, ast_math_oper_t operation);
 
 uint8_t builder_priority(ast_expr_t* expression);
 

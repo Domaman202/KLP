@@ -79,7 +79,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         // Пропускаем бесполезные токены
         parser_skip();
         // Парсим аннотацию
-        void* annotation = parser_parse_annotation();
+        void* annotation = parser_tryparse_annotation();
         if (annotation) {
             ast_body_add(ans, annotation);
             continue;
@@ -87,7 +87,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         // Пропускаем бесполезные токены
         parser_skip();
         // Парсим переменную
-        void* variable = parser_parse_variable(ans, inbody, !inbody);
+        void* variable = parser_tryparse_variable(ans, inbody, !inbody);
         if (variable) {
             context->vars = (void*) util_reallocadd((void*) context->vars, variable, ++context->varc);
             goto reset;
@@ -95,7 +95,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         // Пропускаем бесполезные токены
         parser_skip();
         // Парсим функцию
-        void* function = parser_parse_function(ans);
+        void* function = parser_tryparse_function(ans);
         if (function) {
             context->funs = (void*) util_reallocadd((void*) context->funs, function, ++context->func);
             goto reset;
@@ -104,7 +104,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         parser_skip();
         // Парсим структуру
         if (!instruct) { // Невозможно создавать под-структуры (todo)
-            void* structure = parser_parse_struct(ans);
+            void* structure = parser_tryparse_struct(ans);
             if (structure) {
                 context->structs = (void*) util_reallocadd((void*) context->structs, structure, ++context->structc);
                 goto reset;
@@ -114,7 +114,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         parser_skip();
         // Парсим пространство имён
         if (!instruct) { // Невозможно создавать пространства имён в структурах
-            ast_namespace_t* namespace = parser_parse_namespace(ans);
+            ast_namespace_t* namespace = parser_tryparse_namespace(ans);
             if (namespace) {
                 context->nss = (void*) util_reallocadd((void*) context->nss, namespace, ++context->nsc);
             }
@@ -140,7 +140,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
     return context;
 }
 
-ast_ac_t* parser_parse_annotation() {
+ast_ac_t* parser_tryparse_annotation() {
     token_t* token = parser_next();
     if (token->type == TK_DOG)
         return parser_parse_ac(true);
@@ -148,7 +148,7 @@ ast_ac_t* parser_parse_annotation() {
     return NULL;
 }
 
-ast_namespace_t* parser_parse_namespace(ast_body_t* ans) {
+ast_namespace_t* parser_tryparse_namespace(ast_body_t* ans) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING && util_token_cmpfree(token, "namespace")) {
         // Парсинг пространства имён
@@ -168,7 +168,7 @@ ast_namespace_t* parser_parse_namespace(ast_body_t* ans) {
     return NULL;
 }
 
-ast_struct_t* parser_parse_struct(ast_body_t* ans) {
+ast_struct_t* parser_tryparse_struct(ast_body_t* ans) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING && util_token_cmpfree(token, "struct")) {
         // Парсинг структуры
@@ -199,7 +199,7 @@ ast_struct_t* parser_parse_struct(ast_body_t* ans) {
     return NULL;
 }
 
-ast_function_t* parser_parse_function(ast_body_t* ans) {
+ast_function_t* parser_tryparse_function(ast_body_t* ans) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING && util_token_cmpfree(token, "fun")) {
         // Парсинг функции
@@ -271,53 +271,57 @@ ast_function_t* parser_parse_function(ast_body_t* ans) {
     return NULL;
 }
 
-ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global) {
+ast_variable_t* parser_tryparse_variable(ast_body_t* ans, bool inbody, bool global) {
     token_t* token = parser_next();
     if (token->type == TK_NAMING) {
         if (util_token_cmpfree(token, "var")) {
-            // Парсинг переменной
-            ast_variable_t* variable;
-            // Определние типа
-            token = parser_cnext(1, TK_NAMING);
-            bool type_defined = parser_cnext(2, TK_COLON, TK_ASSIGN)->type == TK_COLON;
-            //
-            if (type_defined) {
-                parser_token = token;
-                variable = parser_parse_var_or_arg_define();
-            } else {
-                variable = ast_variable_allocate();
-                variable->name = token_text(token);
-                parser_prev();
-            }
-            //
-            variable->global = global;
-            // Проверка на external и присваивание
-            token_t* token_assign = parser_next();
-            if (token_assign->type == TK_ASSIGN) {
-                token_t* token_value = parser_cnext(1, TK_NAMING);
-                if (util_token_cmpfree(token_value, "ext")) {
-                    if (!inbody && global) {
-                        variable->external = true;
-                    } else {
-                        // Кидаем ошибку (локальная переменная не может быть external)
-                        throw_invalid_token(token_value);
-                    }
-                } else {
-                    if (!(inbody || global)) {
-                        parser_prev();
-                        variable->assign = parser_parse_expr(false);
-                    } else {
-                        // Кидаем ошибку (переменной нельзя присвоить значение)
-                        throw_invalid_token(token_assign);
-                    }
-                }
-            } else parser_prev();
-            // Выход
-            variable->expr.annotations = ans;
-            return variable;
+            return parser_parse_variable(ans, inbody, global);
         } else parser_prev();
     } else parser_prev();
     return NULL;
+}
+
+ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global) {
+    // Парсинг переменной
+    ast_variable_t* variable;
+    // Определние типа
+    token_t* token = parser_cnext(1, TK_NAMING);
+    bool type_defined = parser_cnext(2, TK_COLON, TK_ASSIGN)->type == TK_COLON;
+    //
+    if (type_defined) {
+        parser_token = token;
+        variable = parser_parse_var_or_arg_define();
+    } else {
+        variable = ast_variable_allocate();
+        variable->name = token_text(token);
+        parser_prev();
+    }
+    //
+    variable->global = global;
+    // Проверка на external и присваивание
+    token_t* token_assign = parser_next();
+    if (token_assign->type == TK_ASSIGN) {
+        token_t* token_value = parser_next();
+        if (token_value->type == TK_NAMING && util_token_cmpfree(token_value, "ext")) {
+            if (!inbody && global) {
+                variable->external = true;
+            } else {
+                // Кидаем ошибку (локальная переменная не может быть external)
+                throw_invalid_token(token_value);
+            }
+        } else {
+            if (inbody || !(global)) {
+                parser_prev();
+                variable->assign = parser_parse_expr(false);
+            } else {
+                // Кидаем ошибку (переменной нельзя присвоить значение)
+                throw_invalid_token(token_assign);
+            }
+        }
+    } else parser_prev();
+    // Выход
+    variable->expr.annotations = ans;
+    return variable;
 }
 
 ast_body_t* parser_parse_body() {
@@ -361,6 +365,34 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
                 parser_prev();
                 ast_body_add(body, (void*) parser_parse_ac(false));
                 break;
+            case TK_OPEN_CUBE_BRACKET:
+                // Парсинг указателя/массива
+                ast_body_add(body, parser_parse_expr(false));
+                // Добавляем операцию
+                ast_math_t* dereference = ast_math_allocate(MOP_DEREFERENCE_GET);
+                ast_body_add(body, (void*) dereference);
+                // Парсинг сдвига/индекса
+                token = parser_next();
+                if (token->type == TK_COMMA) {
+                    // Если есть запятая - есть сдвиг/индекс
+                    ast_body_add(body, parser_parse_expr(false));
+                    parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
+                } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
+                    // Если скобка закрывается - разыминовывание
+                    ast_body_add(body, ast_empty_allocate());
+                } else {
+                    // Кидаем ошибку
+                    throw_invalid_token(token);
+                }
+                // Проверяем присваивание
+                token = parser_next();
+                if (token->type == TK_ASSIGN) {
+                    // Если это присваивание
+                    dereference->operation = MOP_DEREFERENCE_SET;
+                }
+                parser_prev();
+                // Выход
+                break;
             case TK_OPEN_FIGURAL_BRACKET:
                 ast_body_add(body, (ast_expr_t*) parser_parse_body());
                 break;
@@ -372,28 +404,12 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
             case TK_NEWLINE:
                 parser_prev();
                 return cleaner_clean_expression((void*) body);
-            case TK_OPEN_CUBE_BRACKET:
-                // Парсинг указателя/массива
-                ast_body_add(body, parser_parse_expr(false));
-                // Добавляем операцию
-                ast_body_add(body, (void*) ast_math_allocate(MOP_DEREFERENCE));
-                // Парсинг сдвига/индекса
-                token = parser_next();
-                if (token->type == TK_COMMA) {
-                    // Если есть запятая - есть сдвиг/индекс
-                    ast_body_add(body, parser_parse_expr(false));
-                    parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
-                } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
-                    // Если скобка закрывается - разыминовывание
-                    ast_body_add(body, ast_empty_allocate());
-                    break;
-                } else {
-                    // Кидаем ошибку
-                    throw_invalid_token(token);
-                }
             case TK_NAMING: {
                 if (bodyparse) { // Если это парсинг тела, то проверяем дальше
-                    if (util_token_cmpfree(token, "if")) {
+                    if (util_token_cmpfree(token, "var")) {
+                        ast_body_add(body, (void*) parser_parse_variable(NULL, true, false));
+                        break;
+                    } else if (util_token_cmpfree(token, "if")) {
                         // Парсим if
                         ast_if_t* if_ = ast_if_allocate();
                         // Парсим условие
@@ -416,6 +432,24 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
                         } else parser_prev();
                         // Добавляем if
                         ast_body_add(body, (void*) if_);
+                        // Выход
+                        break;
+                    } else if (util_token_cmpfree(token, "while")) {
+                        // Парсим while
+                        ast_while_t* while_ = ast_while_allocate();
+                        // Парсим условие
+                        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                        while_->condition = (void*) parser_parse_body();
+                        // Проверяем do
+                        token = parser_cnext(1, TK_NAMING);
+                        if (!util_token_cmpfree(token, "do")) {
+                            throw_invalid_token(token);
+                        }
+                        // Парсим действие
+                        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
+                        while_->action = (void*) parser_parse_body();
+                        // Добавляем while
+                        ast_body_add(body, (void*) while_);
                         // Выход
                         break;
                     } else if (util_token_cmpfree(token, "return")) {
