@@ -1,7 +1,6 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include <setjmp.h>
 #include <stdbool.h>
 
 extern token_t* parser_token;

@@ -1,8 +1,6 @@
 #include <ast.h>
-#include <util.h>
 
 #include <stdlib.h>
-#include <string.h>
 
 ast_expr_t* ast_empty_allocate() {
     ast_expr_t* empty = calloc(1, sizeof(ast_expr_t));

@@ -1,4 +1,3 @@
-#include <ast.h>
 #include <util.h>
 #include <lexer.h>
 #include <error.h>
@@ -6,8 +5,6 @@
 #include <cleaner.h>
 #include <builder.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 

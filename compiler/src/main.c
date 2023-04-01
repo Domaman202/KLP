@@ -1,16 +1,9 @@
-#include <ap.h>
-#include <ast.h>
 #include <lexer.h>
 #include <print.h>
 #include <error.h>
 #include <parser.h>
-#include <builder.h>
-#include <cleaner.h>
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 
 int main() {
     /// Init

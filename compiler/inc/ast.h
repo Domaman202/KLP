@@ -3,7 +3,6 @@
 
 #include <token.h>
 
-#include <stdint.h>
 #include <stdbool.h>
 
 typedef enum ast_expr_type ast_expr_type_t;

@@ -5,8 +5,6 @@
 #include <lexer.h>
 
 #include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
 
 extern FILE* print_stream;
 

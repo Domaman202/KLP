@@ -3,8 +3,6 @@
 
 #include <token.h>
 
-#include <stdint.h>
-
 typedef struct lexer_next_result lexer_next_result_t;
 typedef struct lexer_lex_result lexer_lex_result_t;
 

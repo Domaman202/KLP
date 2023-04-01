@@ -3,8 +3,6 @@
 
 #include <ast.h>
 
-#include <stdbool.h>
-
 extern uint32_t builder_tmp;
 
 typedef enum builder_priority_group {

@@ -1,8 +1,6 @@
 #include <print.h>
 #include <cleaner.h>
 
-#include <stddef.h>
-
 void cleaner_clean_context(ast_context_t* context) {
     for (uint8_t i = 0; i < context->func; i++)
         cleaner_clean_function(context->funs[i]);

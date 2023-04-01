@@ -2,9 +2,6 @@
 #include <print.h>
 #include <builder.h>
 
-#include <stdio.h>
-#include <stddef.h>
-
 uint32_t builder_tmp;
 
 ast_expr_t* builder_build_body_cycle(ast_body_t* body, ast_body_t* actions) {
@@ -29,16 +26,16 @@ ast_expr_t* builder_build_body(ast_body_t* body, ast_body_t* actions, uint8_t pr
         // Сравниваем приоритет
         if (builder_priority(last) == priority) { // Если приоритет совпал
             // DEBUG
-            printf("\nDO:\n");
-            ast_expr_print(0, (void*) actions);
+            // printf("\nDO:\n");
+            // ast_expr_print(0, (void*) actions);
             // Собираем выражения
             ast_expr_t* tmp = builder_build_expression(body, actions, last, false);
             if (tmp) {
                 result = tmp;
             }
             // DEBUG
-            printf("\nPOSLE:\n");
-            ast_expr_print(0, (void*) actions);
+            // printf("\nPOSLE:\n");
+            // ast_expr_print(0, (void*) actions);
         }
         // Перебираем выражения
         last = last->next;

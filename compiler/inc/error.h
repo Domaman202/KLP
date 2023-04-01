@@ -2,9 +2,6 @@
 #define __ERROR_H__
 
 #include <ast.h>
-#include <token.h>
-
-#include <setjmp.h>
 
 /* PUBLIC */
 
