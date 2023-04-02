@@ -371,8 +371,8 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
                 // Парсинг сдвига/индекса
                 token = parser_next();
                 if (token->type == TK_COMMA) {
-                    // Если есть запятая - есть сдвиг/индекс
-                    ast_body_add(body, parser_parse_expr(false));
+                    // Если есть запятая - есть индекс
+                    ast_body_add(body, (void*) ast_value_allocate(AST_NAMING, (uintptr_t) token_text(parser_cnext(1, TK_NAMING))));
                     parser_cnext(1, TK_CLOSE_CUBE_BRACKET);
                 } else if (token->type == TK_CLOSE_CUBE_BRACKET) {
                     // Если скобка закрывается - разыминовывание
@@ -471,8 +471,8 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
             case VTK_RIGHT_SHIFT:
             case TK_LESS:
             case VTK_LEFT_SHIFT:
-            case TK_AMPERSAND:
-            case TK_PIPE:
+            case VTK_AND:
+            case VTK_OR:
             case TK_CIRCUMFLEX:
             case TK_PLUS:
             case TK_MINUS:
@@ -483,6 +483,7 @@ ast_expr_t* parser_parse_expr(bool bodyparse) {
             case VTK_NEQ:
             case VTK_GOE:
             case VTK_LOE:
+            case TK_AMPERSAND:
                 ast_body_add(body, (void*) ast_math_allocate((ast_math_oper_t) token->type));
                 break;
             case TK_DOG:

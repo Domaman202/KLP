@@ -49,6 +49,8 @@ enum token_type {
     VTK_NEQ                     = 0x23, /* != */
     VTK_GOE                     = 0x24, /* >= */
     VTK_LOE                     = 0x25, /* <= */
+    VTK_AND                     = 0x26, /* && */
+    VTK_OR                      = 0x27, /* || */
 
     // Числа/Символы/Строки/Названия
     TK_NUMBER                   = 0x19, /* 0123456789   */

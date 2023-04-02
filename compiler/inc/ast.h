@@ -148,8 +148,8 @@ struct ast_body {
 enum ast_math_oper {
     // Битовые операции
     MOP_NOT         = TK_EXCLAMINATION, // 0x12
-    MOP_AND         = TK_AMPERSAND,     // 0x8
-    MOP_OR          = TK_PIPE,          // 0x9
+    MOP_AND         = VTK_AND,          // 0x26
+    MOP_OR          = VTK_OR,           // 0x27
     MOP_XOR         = TK_CIRCUMFLEX,    // 0xA
     // Сдвиг
     MOP_RIGHT_SHIFT = VTK_RIGHT_SHIFT,  // 0x20
@@ -169,7 +169,7 @@ enum ast_math_oper {
     // Присваивание
     MOP_ASSIGN      = TK_ASSIGN,// 0x18
     // Ссылка
-    MOP_REFERENCE   = TK_SHARP, // 0x16
+    MOP_REFERENCE   = TK_AMPERSAND,                 // 0x8
     // Разыминовывание
     MOP_DEREFERENCE_SET = TK_OPEN_CUBE_BRACKET,     // 0x2
     MOP_DEREFERENCE_GET = TK_CLOSE_CUBE_BRACKET,    // 0x3

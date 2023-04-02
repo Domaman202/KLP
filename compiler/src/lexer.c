@@ -106,11 +106,19 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
                 break;
             case '|':
                 str++;
-                token->type = TK_PIPE;
+                if (*str == '|') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_OR;
+                } else token->type = TK_PIPE;
                 break;
             case '&':
                 str++;
-                token->type = TK_AMPERSAND;
+                if (*str == '&') {
+                    str++;
+                    token->tsize = 2;
+                    token->type = VTK_AND;
+                } else token->type = TK_AMPERSAND;
                 break;
             case '^':
                 str++;

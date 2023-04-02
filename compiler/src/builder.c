@@ -88,9 +88,16 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
             // Собираем выражение
             ast_math_t* math = (void*) last;
             ast_math_t* nmath = ast_math_allocate(math->operation);
-            if (math->operation == MOP_NOT) { // Проверка навыражение с одним аргументом
-                // todo: Собираем выражение с одним аргументом
-                throw_invalid_ast((void*) math);
+            if (math->operation == MOP_NOT || math->operation == MOP_REFERENCE) {
+                // Собираем аргумент
+                nmath->right = builder_get_argument(body, actions, last->next, false);
+                // Создаём tmp
+                ast_expr_t* tmp = builder_save_tmp(body, (void*) nmath, MOP_ASSIGN);
+                // void* tmp = nmath;
+                // Заменяем выражение и аргумент
+                ast_insert(tmp, last->prev, last->next->next, actions);
+                // Выход
+                return tmp;
             } else {
                 // Собираем аргументы
                 // Собираем левый аргумент
@@ -98,7 +105,9 @@ ast_expr_t* builder_build_expression(ast_body_t* body, ast_body_t* actions, ast_
                     nmath->left = last->prev;
                 else nmath->left = builder_get_argument(body, actions, last->prev, math->operation == MOP_DEREFERENCE_SET || math->operation == MOP_DEREFERENCE_GET);
                 // Собираем правый аргумент
-                nmath->right = builder_get_argument(body, actions, last->next, false);
+                if (math->operation != MOP_DEREFERENCE_SET && math->operation != MOP_DEREFERENCE_GET) {
+                    nmath->right = builder_get_argument(body, actions, last->next, false);
+                } else nmath->right = (void*) ast_value_allocate(AST_NAMING, ((ast_value_t*) last->next)->value);
                 // Создаём tmp
                 ast_expr_t* tmp = builder_save_tmp(body, (void*) nmath, MOP_ASSIGN);
                 // void* tmp = nmath;
