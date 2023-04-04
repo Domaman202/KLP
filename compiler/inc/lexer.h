@@ -8,8 +8,6 @@ typedef struct lexer_next_result {
     struct token* token;
 } lexer_next_result_t;
 
-token_t* token_allocate(char* str, token_t* prev);
-char* token_text(token_t* token);
 lexer_next_result_t lexer_next(char* str, token_t* prev);
 token_t* lexer_lex(char* src);
 

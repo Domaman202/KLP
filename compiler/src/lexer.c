@@ -4,26 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-token_t* token_allocate(char* str, token_t* prev) {
-    token_t* token = malloc(sizeof(token_t));
-    prev->next = token;
-    token->prev = prev;
-    token->next = NULL;
-    token->text = str;
-    token->tsize = 1;
-    token->line = prev->line;
-    token->symbol = prev->symbol + 1;
-    return token;
-}
-
-char* token_text(token_t* token) {
-    uint16_t tsize = token->tsize;
-    char* text = malloc(tsize + 1);
-    memcpy(text, token->text, tsize);
-    text[tsize] = '\0';
-    return text;
-}
-
 lexer_next_result_t lexer_next(char* str, token_t* prev) {
     token_t* token = token_allocate(str, prev);
     char c = *str;

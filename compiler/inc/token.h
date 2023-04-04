@@ -86,4 +86,7 @@ struct token {
     uint16_t symbol;
 };
 
+token_t* token_allocate(char* str, token_t* prev);
+char* token_text(token_t* token);
+
 #endif /* __TOKEN_H__ */
