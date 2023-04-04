@@ -12,7 +12,7 @@ int main() {
     /// Source Read
     char *src;
     {
-        FILE *f = fopen("../examples/test.kpl", "rb");
+        FILE *f = fopen("../examples/add.kpl", "rb");
         fseek(f, 0, SEEK_END);
         long fsize = ftell(f);
         fseek(f, 0, SEEK_SET); 

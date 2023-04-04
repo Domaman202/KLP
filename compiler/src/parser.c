@@ -72,7 +72,7 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
     ast_context_t* context = ast_context_allocate();
     ast_body_t* ans = ast_body_allocate();
     // Парсим модуль
-    context->module = parser_tryparse_module();
+    context->module = parser_parse_module();
     // Проходимся по токенам
     while (parser_token->type != TK_EOF) {
         // Пропускаем бесполезные токены
@@ -140,12 +140,12 @@ ast_ac_t* parser_tryparse_annotation() {
     return NULL;
 }
 
-char* parser_tryparse_module() {
+char* parser_parse_module() {
     token_t* token = parser_next();
     if (token->type == TK_NAMING && util_token_cmpfree(token, "module")) {
         // Парсинг названия модуля
         return token_text(parser_cnext(1, TK_NAMING));
-    } else parser_prev();
+    } else throw_invalid_token(token);
     return NULL;
 }
 
