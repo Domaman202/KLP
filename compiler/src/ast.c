@@ -22,13 +22,6 @@ ast_ac_t* ast_ac_allocate(ast_expr_type_t type, void* argument) {
     return ac;
 }
 
-ast_namespace_t* ast_namespace_allocate(char* name) {
-    ast_namespace_t* namespace = calloc(1, sizeof(ast_namespace_t));
-    namespace->ctx.expr.type = AST_NAMESPACE;
-    namespace->name = name;
-    return namespace;
-}
-
 ast_struct_t* ast_struct_allocate() {
     ast_struct_t* structure = calloc(1, sizeof(ast_struct_t));
     structure->expr.type = AST_STRUCT;

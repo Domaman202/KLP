@@ -31,9 +31,19 @@ lexer_next_result_t lexer_next(char* str, token_t* prev) {
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_')) {
         token->tsize = -1;
         do {
-            c = *str;
-            str++;
-            token->tsize++;
+            parse: {
+                c = *str;
+                str++;
+                token->tsize++;
+                if (*str == ':') {
+                    str++;
+                    if (*str == ':') {
+                        str++;
+                        token->tsize += 2;
+                        goto parse;
+                    } else str--;
+                }
+            }
         } while ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c == '_') || (c >= '0' && c <= '9'));
         str--;
         token->type = TK_NAMING;

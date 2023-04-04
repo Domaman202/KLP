@@ -71,6 +71,8 @@ token_t* parser_cnext__(char* __fun, char* __file, uint16_t __line, unsigned int
 ast_context_t* parser_parse_context(bool inbody, bool instruct) {
     ast_context_t* context = ast_context_allocate();
     ast_body_t* ans = ast_body_allocate();
+    // Парсим модуль
+    context->module = parser_tryparse_module();
     // Проходимся по токенам
     while (parser_token->type != TK_EOF) {
         // Пропускаем бесполезные токены
@@ -109,13 +111,6 @@ ast_context_t* parser_parse_context(bool inbody, bool instruct) {
         }
         // Пропускаем бесполезные токены
         parser_skip();
-        // Парсим пространство имён
-        if (!instruct) { // Невозможно создавать пространства имён в структурах
-            ast_namespace_t* namespace = parser_tryparse_namespace(ans);
-            if (namespace) {
-                context->nss = (void*) util_reallocadd((void*) context->nss, namespace, ++context->nsc);
-            }
-        }
         // Пропускаем бесполезные токены
         parser_skip();
         // Если это парсинг тела проверяем конец тела
@@ -145,22 +140,11 @@ ast_ac_t* parser_tryparse_annotation() {
     return NULL;
 }
 
-ast_namespace_t* parser_tryparse_namespace(ast_body_t* ans) {
+char* parser_tryparse_module() {
     token_t* token = parser_next();
-    if (token->type == TK_NAMING && util_token_cmpfree(token, "namespace")) {
-        // Парсинг пространства имён
-        ast_namespace_t* namespace = ast_namespace_allocate(token_text(parser_cnext(1, TK_NAMING)));
-        // Проверяем начало пространства имён
-        parser_cnext(1, TK_OPEN_FIGURAL_BRACKET);
-        // Парсим тело пространства имён
-        ast_context_t* context = parser_parse_context(true, false);
-        memcpy(namespace, context, sizeof(ast_context_t));
-        namespace->ctx.expr.type = AST_NAMESPACE;
-        // Проверка на конец пространства имён
-        parser_cnext(1, TK_CLOSE_FIGURAL_BRACKET);
-        // Выход
-        namespace->ctx.expr.annotations = ans;
-        return namespace;
+    if (token->type == TK_NAMING && util_token_cmpfree(token, "module")) {
+        // Парсинг названия модуля
+        return token_text(parser_cnext(1, TK_NAMING));
     } else parser_prev();
     return NULL;
 }

@@ -2,10 +2,8 @@
 #include <cleaner.h>
 
 void cleaner_clean_context(ast_context_t* context) {
-    for (uint8_t i = 0; i < context->func; i++)
+    for (uint8_t i = 0; i < context->func; i++) {
         cleaner_clean_function(context->funs[i]);
-    for (uint8_t i = 0; i < context->nsc; i++) {
-        cleaner_clean_context((void*) context->nss[i]);
     }
 }
 

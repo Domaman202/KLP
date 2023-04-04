@@ -31,7 +31,6 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
                 ast_empty_print(indent);
                 break;
             case AST_CONTEXT:
-            case AST_NAMESPACE:
                 ast_context_print(indent, (void*) expression);
                 break;
             case AST_ANNOTATION:
@@ -93,12 +92,10 @@ void ast_empty_print(size_t indent) {
 
 void ast_context_print(size_t indent, ast_context_t* context) {
     ast_print_indent(indent);
-    if (context->expr.type == AST_CONTEXT) {
-        fprintf(print_stream, "[Context]\n");
-    } else {
-        fprintf(print_stream, "[Namespace]\n");
-        ast_print_indent(indent + 1);
-        fprintf(print_stream, "[name]\t%s\n", ((ast_namespace_t*) context)->name);
+    fprintf(print_stream, "[Context]\n");
+    if (context->module) {
+        ast_print_indent(indent);
+        fprintf(print_stream, "[Module] %s\n", context->module);
     }
     if (context->varc) {
         for (uint16_t i = context->varc; i > 0; i--) {
@@ -128,13 +125,6 @@ void ast_context_print(size_t indent, ast_context_t* context) {
     }
     for (uint16_t i = context->structc; i > 0; i--) {
         ast_struct_print(indent + 1, context->structs[context->structc - i]);
-        if (i > 1) {
-            ast_print_indent(indent + 1);
-            fprintf(print_stream, "\n");
-        }
-    }
-    for (uint16_t i = context->nsc; i > 0; i--) {
-        ast_context_print(indent + 1, (void*) context->nss[context->nsc - i]);
         if (i > 1) {
             ast_print_indent(indent + 1);
             fprintf(print_stream, "\n");
