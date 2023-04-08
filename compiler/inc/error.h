@@ -2,6 +2,7 @@
 #define __ERROR_H__
 
 #include <ast.h>
+#include <setjmp.h>
 
 /* PUBLIC */
 
@@ -17,5 +18,9 @@ void catch_init();
 void throw_invalid_token_(char* __fun, char* __file, uint16_t __line, token_t* token) __attribute__((__noreturn__));
 void throw_invalid_ast_(char* __fun, char* __file, uint16_t __line, ast_expr_t* expression) __attribute__((__noreturn__));
 void throw_unknown_error_(char* __fun, char* __file, uint16_t __line) __attribute__((__noreturn__));;
+
+/* PRIVATE */
+
+extern jmp_buf error_catch;
 
 #endif

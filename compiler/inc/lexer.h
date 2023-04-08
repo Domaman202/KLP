@@ -3,12 +3,12 @@
 
 #include <token.h>
 
-typedef struct lexer_next_result {
-    char* str;
-    struct token* token;
-} lexer_next_result_t;
+extern int lexer_line, lexer_symbol;
+extern char* lexer_source;
 
-lexer_next_result_t lexer_next(char* str, token_t* prev);
+void lexer_shift();
+void lexer_backshift();
+token_t* lexer_next(token_t* prev);
 token_t* lexer_lex(char* src);
 
 #endif /* __LEXER_H__ */

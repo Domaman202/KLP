@@ -1,4 +1,5 @@
 #include <token.h>
+#include <lexer.h>
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -11,8 +12,8 @@ token_t* token_allocate(char* str, token_t* prev) {
     token->next = NULL;
     token->text = str;
     token->tsize = 1;
-    token->line = prev->line;
-    token->symbol = prev->symbol + 1;
+    token->line = lexer_line;
+    token->symbol = lexer_symbol;
     return token;
 }
 
