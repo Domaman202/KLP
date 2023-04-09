@@ -35,16 +35,22 @@ ast_function_t* ast_function_allocate() {
     return function;
 }
 
-ast_body_t* ast_body_allocate() {
-    ast_body_t* body = calloc(1, sizeof(ast_body_t));
-    body->expr.type = AST_BODY;
-    return body;
+ast_argument_t* ast_argument_allocate() {
+    ast_argument_t* argument = calloc(1, sizeof(ast_argument_t));
+    argument->expr.type = AST_ARGUMENT;
+    return argument;
 }
 
 ast_variable_t* ast_variable_allocate() {
     ast_variable_t* variable = calloc(1, sizeof(ast_variable_t));
     variable->expr.type = AST_VARIABLE;
     return variable;
+}
+
+ast_body_t* ast_body_allocate() {
+    ast_body_t* body = calloc(1, sizeof(ast_body_t));
+    body->expr.type = AST_BODY;
+    return body;
 }
 
 ast_math_t* ast_math_allocate(ast_math_oper_t operation) {

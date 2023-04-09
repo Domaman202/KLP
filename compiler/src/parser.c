@@ -194,7 +194,10 @@ ast_function_t* parser_tryparse_function(ast_body_t* ans) {
             token_t* token = parser_cnext(3, TK_NAMING, TK_COMMA, TK_CLOSE_BRACKET);
             if (token->type == TK_NAMING) {
                 parser_prev();
-                function->args = (void*) util_reallocadd((void*) function->args, (void*) parser_parse_var_or_arg_define(), ++function->argc);
+                void* argument = parser_parse_var_or_arg_define(true);
+                if (function->args)
+                    ast_set_next((void*) function->args, argument);
+                else function->args = argument;
             } else if (token->type == TK_COMMA) {
                 continue;
             } else {
@@ -271,7 +274,7 @@ ast_variable_t* parser_parse_variable(ast_body_t* ans, bool inbody, bool global)
     //
     if (type_defined) {
         parser_token = token;
-        variable = parser_parse_var_or_arg_define();
+        variable = (void*) parser_parse_var_or_arg_define(false);
     } else {
         variable = ast_variable_allocate();
         variable->name = token_text(token);
@@ -509,8 +512,8 @@ ast_ac_t* parser_parse_ac(bool annotation) {
     return ac;
 }
 
-ast_variable_t* parser_parse_var_or_arg_define() {
-    ast_variable_t* variable = ast_variable_allocate();
+ast_argument_t* parser_parse_var_or_arg_define(bool argument) {
+    ast_argument_t* variable = argument ? ast_argument_allocate() : (void*) ast_variable_allocate();
     variable->name = token_text(parser_cnext(1, TK_NAMING));
     parser_cnext(1, TK_COLON);
     variable->type = parser_parse_type();

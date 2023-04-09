@@ -26,7 +26,7 @@ ast_expr_t* parser_parse_expr(bool bodyparse);
 ast_type_t* parser_parse_type();
 
 ast_ac_t* parser_parse_ac(bool annotation);
-ast_variable_t* parser_parse_var_or_arg_define();
+ast_argument_t* parser_parse_var_or_arg_define(bool argument);
 
 ast_context_t* parser_parse(token_t* token);
 

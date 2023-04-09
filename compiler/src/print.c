@@ -188,14 +188,14 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     fprintf(print_stream, "|\t[name]\t\"%s\"\n", function->name);
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[args]\t");
-    for (uint8_t i = function->argc; i > 0; i--) {
-        ast_variable_t* arg = function->args[function->argc - i];
-        fprintf(print_stream, "%s (", arg->name);
-        ast_type_print(arg->type);
+    ast_argument_t* argument = function->args;
+    while (argument) {
+        fprintf(print_stream, "%s (", argument->name);
+        ast_type_print(argument->type);
         fprintf(print_stream, ")");
-        if (i > 1) {
+        if (argument->expr.next)
             fprintf(print_stream, ", ");
-        }
+        argument = (void*) argument->expr.next;
     }
     fprintf(print_stream, "\n");
     ast_print_indent(indent);
