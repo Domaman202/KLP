@@ -191,14 +191,13 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     fprintf(print_stream, "|\t[name]\t\"%s\"\n", function->name);
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[args]\t");
-    ast_argument_t* argument = function->args;
-    while (argument) {
-        fprintf(print_stream, "%s (", argument->name);
-        ast_type_print(argument->type);
+    for (ast_argument_t* arg = function->args; arg; arg = (void*) arg->expr.next) {
+        fprintf(print_stream, "%s (", arg->name);
+        ast_type_print(arg->type);
         fprintf(print_stream, ")");
-        if (argument->expr.next)
+        if (arg->expr.next) {
             fprintf(print_stream, ", ");
-        argument = (void*) argument->expr.next;
+        }
     }
     fprintf(print_stream, "\n");
     ast_print_indent(indent);
@@ -219,9 +218,9 @@ void ast_argument_print(size_t indent, ast_argument_t* argument) {
     fprintf(print_stream, "|\t[name]\t\"%s\"\n", argument->name);
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[type]\t(");
-    if (argument->type)
+    if (argument->type) {
         ast_type_print(argument->type);
-    else fprintf(print_stream, "unkown");
+    } else fprintf(print_stream, "unkown");
 }
 
 void ast_variable_print(size_t indent, ast_variable_t* variable) {
@@ -231,9 +230,9 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
     fprintf(print_stream, "|\t[name]\t\"%s\"\n", variable->name);
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[type]\t(");
-    if (variable->type)
+    if (variable->type) {
         ast_type_print(variable->type);
-    else fprintf(print_stream, "unkown");
+    } else fprintf(print_stream, "unkown");
     fprintf(print_stream, ")\n");
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[glb]\t%d\n", variable->global);
@@ -248,7 +247,7 @@ void ast_variable_print(size_t indent, ast_variable_t* variable) {
 void ast_body_print(size_t indent, ast_body_t* body, char* text) {
     ast_print_indent(indent);
     fprintf(print_stream, "[%s]\n", text);
-    for (ast_expr_t* expr = body->exprs; expr != NULL; expr = expr->next) {
+    for (ast_expr_t* expr = body->exprs; expr; expr = expr->next) {
         ast_expr_print(indent + 1, expr);
         if (expr->next) {
             ast_print_indent(indent + 1);
