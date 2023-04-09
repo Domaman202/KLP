@@ -43,6 +43,9 @@ void ast_expr_print(size_t indent, ast_expr_t* expression) {
             case AST_FUNCTION:
                 ast_function_print(indent, (void*) expression);
                 break;
+            case AST_ARGUMENT:
+                ast_argument_print(indent, (void*) expression);
+                break;
             case AST_VARIABLE:
                 ast_variable_print(indent, (void*) expression);
                 break;
@@ -207,6 +210,18 @@ void ast_function_print(size_t indent, ast_function_t* function) {
     if (!function->external)
         ast_body_print(indent + 1, function->body, "body");
     ast_annotation_print(indent, (void*) function);
+}
+
+void ast_argument_print(size_t indent, ast_argument_t* argument) {
+    ast_print_indent(indent);
+    fprintf(print_stream, "[Argument]\n");
+    ast_print_indent(indent);
+    fprintf(print_stream, "|\t[name]\t\"%s\"\n", variable->name);
+    ast_print_indent(indent);
+    fprintf(print_stream, "|\t[type]\t(");
+    if (variable->type)
+        ast_type_print(variable->type);
+    else fprintf(print_stream, "unkown");
 }
 
 void ast_variable_print(size_t indent, ast_variable_t* variable) {

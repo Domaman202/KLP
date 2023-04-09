@@ -20,6 +20,7 @@ void ast_ac_print(size_t indent, ast_ac_t* ac);
 void ast_annotation_print(size_t indent, ast_expr_t* expression);
 void ast_struct_print(size_t indent, ast_struct_t* structure);
 void ast_function_print(size_t indent, ast_function_t* function);
+void ast_argument_print(size_t indent, ast_argument_t* argument);
 void ast_variable_print(size_t indent, ast_variable_t* variable);
 void ast_body_print(size_t indent, ast_body_t* body, char* text);
 void ast_math_print(size_t indent, ast_math_t* math);
