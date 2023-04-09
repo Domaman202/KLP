@@ -216,11 +216,11 @@ void ast_argument_print(size_t indent, ast_argument_t* argument) {
     ast_print_indent(indent);
     fprintf(print_stream, "[Argument]\n");
     ast_print_indent(indent);
-    fprintf(print_stream, "|\t[name]\t\"%s\"\n", variable->name);
+    fprintf(print_stream, "|\t[name]\t\"%s\"\n", argument->name);
     ast_print_indent(indent);
     fprintf(print_stream, "|\t[type]\t(");
-    if (variable->type)
-        ast_type_print(variable->type);
+    if (argument->type)
+        ast_type_print(argument->type);
     else fprintf(print_stream, "unkown");
 }
 
